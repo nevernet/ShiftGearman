@@ -1,0 +1,26 @@
+<phpunit bootstrap="./bootstrap.php" colors="true">
+
+	<!-- Test suites -->
+    <testsuite name="Unit tests">
+        <directory>unit</directory>
+    </testsuite>
+	
+    <testsuite name="Integrational tests">
+        <directory>integration</directory>
+    </testsuite>
+    <!-- /Test suites -->
+
+	<!-- Code coverage filters -->
+    <filter>
+        <blacklist>
+            <directory suffix=".php">../</directory>
+        </blacklist>
+
+        <whitelist>
+            <directory suffix=".php">../src</directory>
+            <file>../Module.php</file>
+        </whitelist>
+    </filter>
+    <!-- /Code coverage filters -->
+
+</phpunit>

@@ -1,0 +1,16 @@
+{
+    "name": "projectshift/ShiftGearman",
+    "description": "This module provides object interface to create and execute Gearman tasks with PECL extension.",
+    "keywords": ["module", "cms", "gearman", "queue", "job queue"],
+    "homepage": "http://www.projectshift.eu/",
+    "authors": [
+        {
+            "name": "Dmitry Belyakov",
+            "email": "dmitrybelyakov@gmail.com",
+            "homepage": "http://www.projectshift.eu"
+        }
+    ],
+    "require": {
+        "ext-gearman":"*"
+    }
+}
