@@ -23,41 +23,20 @@
 /**
  * @namespace
  */
-namespace ShiftGearman\Job;
+namespace ShiftGearman;
+
 
 /**
- * Example job
- * This is an example of gearman job implementation.
+ * Gearman task
+ * Task is a request to gearman to execute a certain job with configured
+ * parameters.
  *
  * @category    Projectshift
  * @package     ShiftGearman
  * @subpackage  Job
  */
-class ExampleJob extends AbstractJob
+class Task
 {
-    /**
-     * Init
-     * Initialize
-     *
-     * @return \ShiftGearman\Job\ExampleJob
-     */
-    public function init()
-    {
-        $this->setName('shiftgearman.example');
-    }
-
-
-    /**
-     * Execute
-     * Runs the job procedure
-     *
-     * @return mixed|void
-     */
-    public function execute()
-    {
-        echo 'Executing job' . PHP_EOL;
-        echo 'Done' . PHP_EOL;
-    }
 
 
 

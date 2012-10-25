@@ -24,6 +24,7 @@
  * @namespace
  */
 namespace ShiftGearman\Job;
+use Zend\Di\Locator;
 
 /**
  * Abstract job
@@ -44,14 +45,25 @@ abstract class AbstractJob
      */
     protected $name;
 
+    /**
+     * Service locator instance
+     * @var \Zend\Di\Locator
+     */
+    protected $locator;
+
 
     /**
      * Construct
      * Creates an instance of job.
+     *
+     * @param \Zend\Di\Locator $locator
      * @return void
      */
-    public function __construct()
+    public function __construct(Locator $locator)
     {
+        //set locator
+        $this->locator = $locator;
+
         //initialize extending job
         $this->init();
     }

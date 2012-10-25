@@ -54,6 +54,9 @@ class GearmanService
     protected $config;
 
 
+    protected $
+
+
     /**
      * Construct
      * Instantiates the service. Requires an instance of service locator.
@@ -109,7 +112,23 @@ class GearmanService
     public function getWorker($workerName = null)
     {
         $worker = $this->locator->newInstance('ShiftGearman\Worker\Worker');
+        $config = $this->getConfig();
+        if(isset($config['workers'][$workerName]))
+            $worker->configureWorker($config['workers'][$workerName]);
+
         return $worker;
+    }
+
+
+    /**
+     * Run task
+     * Accepts a task and passes it to gearman server for execution.
+     *
+     * @param Task $task
+     */
+    public function runTask(Task $task)
+    {
+
     }
 
 

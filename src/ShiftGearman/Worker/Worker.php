@@ -26,6 +26,7 @@
 namespace ShiftGearman\Worker;
 
 use GearmanWorker;
+use Zend\Di\Locator;
 use ShiftGearman\Job\AbstractJob;
 use ShiftGearman\Exception\ConfigurationException;
 use ShiftGearman\Exception\RuntimeException;
@@ -41,6 +42,14 @@ use ShiftGearman\Exception\RuntimeException;
  */
 class Worker
 {
+    /**
+     * Service locator instance
+     * Used to retrieve jobs by class name
+     *
+     * @var \Zend\Di\Locator
+     */
+    protected $locator;
+
 
     /**
      * Gearman worker instance.
@@ -81,21 +90,40 @@ class Worker
      * Instantiates worker, registers jobs and waits for gearman to
      * trigger execution.
      *
+     * @param \Zend\Di\Locator $locator
      * @param array $config
      * @return void
      */
-    public function __construct(array $config = null)
+    public function __construct(Locator $locator, array $config = null)
     {
-        //use setters to set option
-        if(is_array($config))
+        //set locator
+        $this->locator = $locator;
+
+        //do we have worker config?
+        $this->configureWorker($config);
+    }
+
+
+    /**
+     * Configure worker
+     * Accepts configuration and uses corresponding methods to set up worker.
+     *
+     * @param array $config
+     * @return \ShiftGearman\Worker\Worker
+     */
+    public function configureWorker(array $config = null)
+    {
+        if(empty($config))
+            return;
+
+        foreach($config as $property => $value)
         {
-            foreach($config as $property => $value)
-            {
-                $method = 'set' . ucfirst($property);
-                if(method_exists($this, $method))
-                    $this->$method($value);
-            }
+            $method = 'set' . ucfirst($property);
+            if(method_exists($this, $method))
+                $this->$method($value);
         }
+
+        return $this;
     }
 
 
@@ -106,7 +134,19 @@ class Worker
      */
     public function run()
     {
-        sleep(3);
+        $worker = $this->getGearmanWorker();
+
+        echo 'Waiting for job...' . PHP_EOL;
+        while($worker->work())
+        {
+            if($worker->returnCode() != GEARMAN_SUCCESS)
+            {
+              echo "return_code: " . $worker->returnCode() . "\n";
+              break;
+            }
+        }
+
+
     }
 
 
@@ -142,7 +182,29 @@ class Worker
             //set timeout
             if(null != $this->getWorkerTimeout())
                 $this->gearmanWorker->setTimeout($this->getWorkerTimeout());
+
+            //add gearman servers
+            $servers = $this->getServers();
+            foreach($servers as $server)
+            {
+                $this->gearmanWorker->addServer(
+                    $server['host'],
+                    $server['port']);
+            }
+
+            //register worker capabilities
+            $jobs = $this->getJobs();
+            foreach($jobs as $job)
+            {
+                $name = $job->getName();
+                $this->gearmanWorker->addFunction(
+                    $name,
+                    array($job, 'execute')
+                );
+            }
         }
+
+        return $this->gearmanWorker;
     }
 
 
@@ -258,7 +320,7 @@ class Worker
         }
 
         //check job
-        if($job instanceof AbstractJob)
+        if(!$job instanceof AbstractJob)
             throw new RuntimeException("Invalid job type.");
 
 
@@ -284,6 +346,19 @@ class Worker
         }
 
         return $this;
+    }
+
+
+    /**
+     * Get jobs
+     * Returns an array of jobs currently registered as this worker
+     * capabilities.
+     *
+     * @return array
+     */
+    public function getJobs()
+    {
+        return $this->jobs;
     }
 
 
