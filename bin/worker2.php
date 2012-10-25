@@ -18,6 +18,6 @@ $runHelper = new ShiftCommon\Application\RunHelper($options);
 $runHelper->bootstrap();
 $locator = $runHelper->getApplication()->getLocator();
 
-$worker = $locator->newInstance('ShiftGearman\Worker\Worker');
+$worker = $locator->get('ShiftGearman\GearmanService')->getWorker('example');
 $worker->run();
 

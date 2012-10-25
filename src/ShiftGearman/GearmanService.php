@@ -26,6 +26,8 @@
 namespace ShiftGearman;
 
 use ShiftGearman\Module;
+use Zend\Di\Locator;
+
 
 /**
  * Gearman service
@@ -40,10 +42,29 @@ use ShiftGearman\Module;
 class GearmanService
 {
     /**
+     * Service locator instance
+     * @var \Zend\Di\Locator
+     */
+    protected $locator;
+
+    /**
      * Gearman module configuration
      * @var array
      */
     protected $config;
+
+
+    /**
+     * Construct
+     * Instantiates the service. Requires an instance of service locator.
+     *
+     * @param \Zend\Di\Locator $locator
+     * @return void
+     */
+    public function __construct(Locator $locator)
+    {
+        $this->locator = $locator;
+    }
 
 
     /**
@@ -73,6 +94,22 @@ class GearmanService
             $this->config = Module::getModuleConfig()->toArray();
 
         return $this->config;
+    }
+
+
+    /**
+     * Get worker
+     * Instantiates and configures a worker.May optionally accept worker
+     * configuration profile name. Then configured worker properties are
+     * applied, otherwise you'll get a default worker with no servers or
+     * job capabilities.
+     *
+     * @param string $workerName
+     */
+    public function getWorker($workerName = null)
+    {
+        $worker = $this->locator->newInstance('ShiftGearman\Worker\Worker');
+        return $worker;
     }
 
 

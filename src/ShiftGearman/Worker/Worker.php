@@ -26,6 +26,9 @@
 namespace ShiftGearman\Worker;
 
 use GearmanWorker;
+use ShiftGearman\Job\AbstractJob;
+use ShiftGearman\Exception\ConfigurationException;
+use ShiftGearman\Exception\RuntimeException;
 
 
 /**
@@ -40,7 +43,8 @@ class Worker
 {
 
     /**
-     * Gearman worker instance
+     * Gearman worker instance.
+     *
      * @var \GearmanWorker
      */
     protected $gearmanWorker;
@@ -49,9 +53,27 @@ class Worker
     /**
      * Gearman worker timeout
      * Idle worker will terminate after this timeout.
+     *
      * @var int
      */
     protected $workerTimeout;
+
+    /**
+     * Servers
+     * An array of gearman servers to listen to.
+     *
+     * @var array
+     */
+    protected $servers = array();
+
+
+    /**
+     * Jobs
+     * An array of jobs this worker is capable of executing.
+     *
+     * @var array
+     */
+    protected $jobs = array();
 
 
     /**
@@ -149,13 +171,120 @@ class Worker
     }
 
 
+    /**
+     * Set servers
+     * Allows to set a pool of gearman servers to listen to.
+     *
+     * @param array $servers
+     * @return \ShiftGearman\Worker\Worker
+     */
+    public function setServers(array $servers)
+    {
+        foreach($servers as $server)
+        {
+            $host = $server['host'] ?: null;
+            $port = $server['port'] ?: null;
+            $this->addServer($host, $port);
+        }
+
+        return $this;
+    }
 
 
-    //Connect to configured servers
-    //Register configured jobs
-    //Wait for work
+    /**
+     * Add server
+     * Adds a single gearman server to listen to.
+     *
+     * @param string $host
+     * @param int $port
+     * @return \ShiftGearman\Worker\Worker
+     */
+    public function addServer($host, $port = 4730)
+    {
+        $this->servers[] = array($host, $port);
+        return $this;
+    }
 
 
+    /**
+     * Get servers
+     * Return an array of currently configured gearman servers.
+     * @return array
+     */
+    public function getServers()
+    {
+        return $this->servers;
+    }
+
+
+    /**
+     * Set jobs
+     * Sets an array of jobs this worker is capable of executing.
+     *
+     * @param array $jobs
+     * @return \ShiftGearman\Worker\Worker
+     */
+    public function setJobs(array $jobs)
+    {
+        foreach($jobs as $job)
+            $this->addJob($job);
+
+        return $this;
+    }
+
+
+    /**
+     * Add job
+     * Evaluates and registeres a job. Jobs may be either a class name to get
+     * from locator, or an instance of AbstractJob.
+     *
+     * @param string | \ShiftGearman\Job\AbstractJob $job
+     * @throws \ShiftGearman\Exception\ConfigurationException
+     * @throws \ShiftGearman\Exception\RuntimeException
+     */
+    public function addJob($job)
+    {
+        //get job from locator
+        try
+        {
+            if(is_string($job))
+                $job = $this->locator->newInstance($job);
+        }
+        catch(\Exception $excepion)
+        {
+            $message = "Can't get $job from service locator. Error: ";
+            $message .= $excepion->getMessage();
+            throw new ConfigurationException($message, 500);
+        }
+
+        //check job
+        if($job instanceof AbstractJob)
+            throw new RuntimeException("Invalid job type.");
+
+
+        //add job
+        $this->jobs[] = $job;
+        return $this;
+    }
+
+
+    /**
+     * Remove job
+     * Removes a job from worker capabilities.
+     *
+     * @param \ShiftGearman\Job\AbstractJob $job
+     * @return \ShiftGearman\Worker\Worker
+     */
+    public function removeJob(AbstractJob $job)
+    {
+        foreach($this->jobs as $index => $workerJob)
+        {
+            if($workerJob == $job)
+                unset($this->jobs[$index]);
+        }
+
+        return $this;
+    }
 
 
 

@@ -17,20 +17,25 @@
  *
  * @category    Projectshift
  * @package     ShiftGearman
+ * @subpackage  Exception
  */
 
 /**
  * @namespace
  */
-namespace ShiftGearman;
+namespace ShiftGearman\Exception;
+
+use ShiftGearman\Exception as GearmanException;
 
 /**
- * Gearman exceptions marker interface
- * All gearman exceptions must implement this marker interface
+ * Gearman runtime exception.
  *
  * @category    Projectshift
  * @package     ShiftGearman
+ * @subpackage  Exception
  */
-interface Exception
+class RuntimeException
+    extends \RuntimeException
+    implements GearmanException
 {
 }
