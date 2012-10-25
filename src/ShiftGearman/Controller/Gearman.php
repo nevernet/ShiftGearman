@@ -65,8 +65,9 @@ class Gearman extends ActionController
         $handle = $gearman->doTask($task);
 
 
-        echo '<pre>';
+        echo '<div style="height: 100px"></div><pre>';
         print_r($handle);
+        print_r($gearman->getGearmanClient()->jobStatus($handle));
         echo '</pre>';
 
 

@@ -26,6 +26,8 @@ namespace ShiftGearman;
 
 use Zend\Module\Consumer\AutoloaderProvider;
 use Zend\EventManager\StaticEventManager;
+use Zend\Module\ModuleEvent;
+use Zend\Module\Manager;
 
 
 /**
@@ -38,6 +40,13 @@ use Zend\EventManager\StaticEventManager;
  */
 class Module implements AutoloaderProvider
 {
+    /**
+     * Module config
+     * Contains merged module configuration
+     * @var \Zend\Config\Config
+     */
+    protected static $moduleConfig;
+
 
     /**
      * Get autoloader config
@@ -87,6 +96,49 @@ class Module implements AutoloaderProvider
 
 		//return config
 		return $config;
+    }
+
+    /**
+     * Initialize
+     * Bind to system events
+     *
+     * @param \Zend\Module\Manager $moduleManager
+     * @return void
+     */
+    public function init(Manager $moduleManager)
+    {
+        //initialize config
+        $moduleManager->events()->attach(
+            'loadModules.post',
+            array($this, 'initializeConfig')
+        );
+    }
+
+
+    /**
+     * Initialize config
+     * This handler gets run once all application modules are loaded to
+     * grab merged configuration
+     *
+     * @param \Zend\Module\ModuleEvent $moduleEvent
+     * @return void
+     */
+    public function initializeConfig(ModuleEvent $moduleEvent)
+    {
+        //Grab module config
+        $config = $moduleEvent->getConfigListener()->getMergedConfig();
+        static::$moduleConfig = $config->ShiftGearman;
+    }
+
+
+    /**
+     * Get module config
+     * Returns merged module configuration.
+     * @return \Zend\Config\Config
+     */
+    public static function getModuleConfig()
+    {
+        return static::$moduleConfig;
     }
 
 
