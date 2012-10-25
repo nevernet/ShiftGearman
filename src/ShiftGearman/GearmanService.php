@@ -54,6 +54,12 @@ class GearmanService
     protected $config;
 
 
+    /**
+     * An array of gearman client connections.
+     * @var array
+     */
+    protected $connections = array();
+
 
     /**
      * Construct
@@ -119,6 +125,24 @@ class GearmanService
 
 
     /**
+     * Get connection
+     * Checks if we already have a client connection and returns that.
+     * Otherwise creates a new connection.
+     *
+     * @param string $name
+     * @return \GearmanClient
+     */
+    public function getConnection($name)
+    {
+        if(!isset($this->connections[$name]))
+        {
+
+        }
+    }
+
+
+
+    /**
      * Run task
      * Accepts a task and passes it to gearman server for execution.
      *
@@ -126,8 +150,12 @@ class GearmanService
      */
     public function runTask(Task $task)
     {
-
+        //get task connection
+        //get the connection
+        //add task
     }
+
+
 
 
 
