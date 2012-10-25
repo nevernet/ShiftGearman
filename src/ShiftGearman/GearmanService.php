@@ -54,8 +54,6 @@ class GearmanService
     protected $config;
 
 
-    protected $
-
 
     /**
      * Construct
