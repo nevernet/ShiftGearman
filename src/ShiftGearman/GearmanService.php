@@ -25,6 +25,7 @@
  */
 namespace ShiftGearman;
 
+use GearmanClient;
 use Zend\Di\Locator;
 use ShiftGearman\Module;
 use ShiftGearman\Exception\ConfigurationException;
@@ -54,12 +55,11 @@ class GearmanService
      */
     protected $config;
 
-
     /**
      * An array of gearman client connections.
      * @var array
      */
-    protected $connections = array();
+    protected $clients = array();
 
 
     /**
@@ -145,21 +145,55 @@ class GearmanService
 
 
     /**
-     * Get connection
+     * Get client
      * Checks if we already have a client connection and returns that.
      * Otherwise creates a new connection.
      *
      * @param string $name
      * @return \GearmanClient
      */
-    public function getConnection($name)
+    public function getClient($name)
     {
         if(!isset($this->connections[$name]))
         {
+            $config = $this->getConfig();
+            if(!isset($config['connections'][$name]))
+            {
+                $message = "Can't create client '$name'. Connection ";
+                $message .= "configuration is missing";
+                throw new ConfigurationException($message);
+            }
+
             //create connection
+            $connectionConfig = $config['connections'][$name];
+            $client = new GearmanClient;
+
+            //set timeout
+            if($connectionConfig['timeout'])
+                $client->setTimeout($connectionConfig['timeout']);
+
+            //add servers
+            foreach($connectionConfig['servers'] as $server)
+                $client->addServer($server['host'], $server['port']);
+
             //preserve
-            //return
+            $this->clients[$name] = $client;
         }
+
+        //return
+        return $this->clients[$name];
+    }
+
+
+    /**
+     * Get clients
+     * Returns all currently existing client connections.
+     *
+     * @return array
+     */
+    public function getClients()
+    {
+        return $this->clients;
     }
 
 
@@ -168,13 +202,111 @@ class GearmanService
      * Run task
      * Accepts a task and passes it to gearman server for execution.
      *
-     * @param Task $task
+     * @param \ShiftGearman\Task $task
+     * @return void
      */
     public function runTask(Task $task)
     {
-        //get task connection
-        //get the connection
-        //add task
+        $client = $this->getClient($task->getClientName());
+
+        $priority = $task->getPriority();
+        switch($priority)
+        {
+
+            case 'high':
+                $method = 'doHigh';
+                if($task->isBackground())
+                    $method = 'doHighBackground';
+            break;
+
+
+            case 'low':
+                $method = 'doLow';
+                if($task->isBackground())
+                    $method = 'doLowBackground';
+            break;
+
+            default:
+                $method = 'do';
+                if($task->isBackground())
+                    $method = 'doBackground';
+            break;
+        }
+
+        //add task to queue
+        $client->$method(
+            $task->getJobName(),
+            $task->getWorkload(),
+            $task->getContext(),
+            $task->getTastId()
+        );
+    }
+
+
+    /**
+     * Run tasks
+     * Accepts an array of tasks to be executed at once. Tasks may have
+     * different connections configured for them, so we first sort all tasks
+     * by connection.
+     *
+     * @param array $tasks
+     * @return void
+     */
+    public function runTasks(array $tasks)
+    {
+        $tasksByClient = array();
+        foreach($tasks as $task)
+        {
+            $clientName = $task->getClientName();
+            $tasksByClient[$clientName][] = $task;
+        }
+
+
+        foreach($tasksByClient as $clientName => $clientTasks)
+        {
+            //get client
+            $client = $this->getClient($clientName);
+
+            //add task
+            foreach($clientTasks as $clientTask)
+            {
+                //figure out priority
+                $priority = $clientTask->getPriority();
+                switch($priority)
+                {
+
+                    case 'high':
+                        $method = 'addTaskHigh';
+                        if($task->isBackground())
+                            $method = 'addTaskHighBackground';
+                    break;
+
+
+                    case 'low':
+                        $method = 'addTaskHigh';
+                        if($task->isBackground())
+                            $method = 'addTaskHighBackground';
+                    break;
+
+                    default:
+                        $method = 'addTask';
+                        if($task->isBackground())
+                            $method = 'addTaskBackground';
+                    break;
+                }
+
+                //add
+                $client->$method(
+                    $task->getJobName(),
+                    $task->getWorkload(),
+                    $task->getContext(),
+                    $task->getTastId()
+                );
+            }
+
+            //run client tasks at once
+            $client->runTasks();
+        }
     }
 
 

@@ -24,6 +24,7 @@
  * @namespace
  */
 namespace ShiftGearman\Job;
+use GearmanJob;
 
 /**
  * Example job
@@ -51,12 +52,22 @@ class ExampleJob extends AbstractJob
      * Execute
      * Runs the job procedure
      *
+     * @param \GearmanJob $job
      * @return mixed|void
      */
-    public function execute()
+    public function execute(GearmanJob $job)
     {
-        echo 'Executing job' . PHP_EOL;
-        echo 'Done' . PHP_EOL;
+        echo '-------------------------------------------' . PHP_EOL;
+        echo 'Executing job' . PHP_EOL . PHP_EOL;
+
+        $iterations = 10;
+        for($i = 1; $i < $iterations; $i++)
+        {
+            echo 'Iteration ' . $i . ' of ' . $iterations . PHP_EOL;
+            sleep(1);
+        }
+
+        echo PHP_EOL . 'Done' . PHP_EOL . PHP_EOL;
     }
 
 

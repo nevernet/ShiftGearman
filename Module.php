@@ -58,7 +58,6 @@ class Module implements AutoloaderProvider
     {
         $dir = __DIR__;
         $gearman = 'ShiftGearman';
-        $mwGearman = 'mwGearman';
         $config = array();
 
         //class map loader config
@@ -70,7 +69,6 @@ class Module implements AutoloaderProvider
         $config['Zend\Loader\StandardAutoloader'] = array(
             'namespaces' => array(
                   $gearman => $dir . '/src/' .$gearman,
-                  $mwGearman => $dir . '/src/mw-gearman/src/mwGearman',
               )
         );
 

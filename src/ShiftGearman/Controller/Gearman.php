@@ -40,6 +40,9 @@ use Zend\View\Model\ViewModel;
 class Gearman extends ActionController
 {
 
+
+
+
     /**
      * Gearman index action
      * Here we are going to create an run a gearman job.
@@ -49,28 +52,22 @@ class Gearman extends ActionController
      */
     public function indexAction()
     {
+        echo '<div style="height: 100px"></div>';
+        echo '<div class="container">';
         echo '<h3>Submitting a Job to Gearman</h3>';
-        $gearman = new \mwGearman\Client\Pecl;
-        $gearman->addServer('localhost');
-        $gearman->connect();
 
-        $workload = 'some-string';
-        $task = new \mwGearman\Task\Task();
-        $task->setBackground(true)
-             ->setFunction('myJob')
-//             ->setFunction('reverse') //this works
-             ->setWorkload($workload)
-             ->setUnique(crc32(microtime()));
+        $task = new \ShiftGearman\Task;
+        $task->setJobName('shiftgearman.example')
+            ->setTaskId(crc32(microtime()))
+            ->setWorkload('Pass this data to task')
+            ->runInBackground();
 
-        $handle = $gearman->doTask($task);
+        $service = $this->locator->get('ShiftGearman\GearmanService');
+        $service->runTask($task);
 
 
-        echo '<div style="height: 100px"></div><pre>';
-        print_r($handle);
-        print_r($gearman->getGearmanClient()->jobStatus($handle));
-        echo '</pre>';
 
-
+        echo '</div>';
     }
 
 } //class ends here

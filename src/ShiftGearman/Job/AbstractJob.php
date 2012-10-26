@@ -24,6 +24,8 @@
  * @namespace
  */
 namespace ShiftGearman\Job;
+
+use GearmanJob;
 use Zend\Di\Locator;
 
 /**
@@ -83,10 +85,10 @@ abstract class AbstractJob
      * This will get triggered by workers to execute job. Implement
      * in your custom job classes.
      *
-     *
+     * @param \GearmanJob $job
      * @return mixed
      */
-    abstract public function execute();
+    abstract public function execute(GearmanJob $job);
 
 
     /**
