@@ -237,12 +237,11 @@ class GearmanService
         $client->$method(
             $task->getJobName(),
             $task->getWorkload(),
-            $task->getContext(),
             $task->getTastId()
         );
     }
 
-
+    
     /**
      * Run tasks
      * Accepts an array of tasks to be executed at once. Tasks may have

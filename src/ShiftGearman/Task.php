@@ -24,6 +24,7 @@
  */
 namespace ShiftGearman;
 
+use DateTime;
 
 /**
  * Gearman task
@@ -35,6 +36,13 @@ namespace ShiftGearman;
  */
 class Task
 {
+    // ------------------------------------------------------------------------
+
+    /*
+     * Task properties
+     */
+
+
     /**
      * Client connection to send this task to
      * @var string
@@ -77,6 +85,61 @@ class Task
      * @var string
      */
     protected $context;
+
+    // ------------------------------------------------------------------------
+
+    /*
+     * Scheduling options
+     */
+
+    /**
+     * Run at once or schedule for a certain datetime.
+     * @var int | void
+     */
+    protected $runAt;
+
+    /**
+     * How much times to repeat a job
+     * @var int
+     */
+    protected $repeatTimes = 1;
+
+    /**
+     * Repeat each minute (0-59)
+     * @var int
+     */
+    protected $repeatEachMinute;
+
+    /**
+     * Repeat each hour (0-23)
+     * @var int
+     */
+    protected $repeatEachHour;
+
+    /**
+     * Repeat each day of month (1-31)
+     * @var int
+     */
+    protected $repeatEachDayOfMonth;
+
+    /**
+     * Repeat each month (1-12)
+     * @var int
+     */
+    protected $repeatEachMonth;
+
+    /**
+     * Repeat each day of week (1-7)
+     * @var int
+     */
+    protected $repeatEachDayOfWeek;
+
+
+    // ------------------------------------------------------------------------
+
+    /*
+     * Task public API
+     */
 
 
     /**
@@ -279,7 +342,31 @@ class Task
     }
 
 
+    /**
+     * Set run at
+     * Sets a datetime this job would be subitted to gearman.
+     * Note: a special scheduler worker required.
+     *
+     * @param \DateTime $datetime
+     * @return \ShiftGearman\Task
+     */
+    public function setRunAt(DateTime $datetime)
+    {
+        $this->runAt = $datetime;
+        return $this;
+    }
 
+
+    /**
+     * Get run at
+     * Returns scheduled datetime or null meaning run at once.
+     *
+     * @return \DateTime | void
+     */
+    public function getRunAt()
+    {
+        return $this->runAt;
+    }
 
 
 
