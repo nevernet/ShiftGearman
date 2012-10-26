@@ -25,8 +25,9 @@
  */
 namespace ShiftGearman;
 
-use ShiftGearman\Module;
 use Zend\Di\Locator;
+use ShiftGearman\Module;
+use ShiftGearman\Exception\ConfigurationException;
 
 
 /**
@@ -112,14 +113,33 @@ class GearmanService
      * job capabilities.
      *
      * @param string $workerName
+     * @throws \ShiftGearman\Exception\ConfigurationException
      */
     public function getWorker($workerName = null)
     {
-        $worker = $this->locator->newInstance('ShiftGearman\Worker\Worker');
+        //get config
         $config = $this->getConfig();
-        if(isset($config['workers'][$workerName]))
-            $worker->configureWorker($config['workers'][$workerName]);
 
+        //check worker config
+        if(!isset($config['workers'][$workerName]))
+        {
+            $message = "Worker '$workerName' is not configured";
+            throw new ConfigurationException($message);
+        }
+
+        //check worker connection config
+        $connectionName = $config['workers'][$workerName]['connection'];
+        if(!isset($config['connections'][$connectionName]))
+        {
+            $message = "Connection '$connectionName' requested by worker ";
+            $message .= "'$workerName' is not configured";
+            throw new ConfigurationException($message);
+        }
+
+        //create worker
+        $worker = $this->locator->newInstance('ShiftGearman\Worker\Worker');
+        $worker->setConfig($config['workers'][$workerName]);
+        $worker->setConnectionConfig($config['connections'][$connectionName]);
         return $worker;
     }
 
@@ -136,7 +156,9 @@ class GearmanService
     {
         if(!isset($this->connections[$name]))
         {
-
+            //create connection
+            //preserve
+            //return
         }
     }
 

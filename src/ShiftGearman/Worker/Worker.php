@@ -48,7 +48,22 @@ class Worker
      *
      * @var \Zend\Di\Locator
      */
-    protected $locator;
+    private $locator;
+
+
+    /**
+     * Worker config
+     * Includes an array of job capabilities and connection name.
+     * @var array
+     */
+    protected $config = array();
+
+
+    /**
+     * Worker connection configuration.
+     * @var array
+     */
+    protected $connectionConfig;
 
 
     /**
@@ -57,23 +72,6 @@ class Worker
      * @var \GearmanWorker
      */
     protected $gearmanWorker;
-
-
-    /**
-     * Gearman worker timeout
-     * Idle worker will terminate after this timeout.
-     *
-     * @var int
-     */
-    protected $workerTimeout;
-
-    /**
-     * Servers
-     * An array of gearman servers to listen to.
-     *
-     * @var array
-     */
-    protected $servers = array();
 
 
     /**
@@ -94,61 +92,74 @@ class Worker
      * @param array $config
      * @return void
      */
-    public function __construct(Locator $locator, array $config = null)
+    public function __construct(Locator $locator)
     {
         //set locator
         $this->locator = $locator;
-
-        //do we have worker config?
-        $this->configureWorker($config);
     }
 
 
     /**
-     * Configure worker
-     * Accepts configuration and uses corresponding methods to set up worker.
+     * Get locator
+     * Returns service locator instance.
+     *
+     * @return \Zend\Di\Locator
+     */
+    public function getLocator()
+    {
+        return $this->locator;
+    }
+
+
+    /**
+     * Set config
+     * Sets worker and connection configuration.
      *
      * @param array $config
      * @return \ShiftGearman\Worker\Worker
      */
-    public function configureWorker(array $config = null)
+    public function setConfig(array $config)
     {
-        if(empty($config))
-            return;
-
-        foreach($config as $property => $value)
-        {
-            $method = 'set' . ucfirst($property);
-            if(method_exists($this, $method))
-                $this->$method($value);
-        }
-
+        $this->config = $config;
         return $this;
     }
 
 
     /**
-     * Run
-     * Connects to gearman server, registers configured jobs and waits
-     * for gearman to trigger.
+     * Get config
+     * Returns currently set config.
+     * @return array | void
      */
-    public function run()
+    public function getConfig()
     {
-        $worker = $this->getGearmanWorker();
-
-        echo 'Waiting for job...' . PHP_EOL;
-        while($worker->work())
-        {
-            if($worker->returnCode() != GEARMAN_SUCCESS)
-            {
-              echo "return_code: " . $worker->returnCode() . "\n";
-              break;
-            }
-        }
-
-
+        return $this->config;
     }
 
+
+    /**
+     * Set connection config
+     * Sets a connection properties such as list of servers this worker
+     * should connect to.
+     *
+     * @param array $connectionConfig
+     * @return \ShiftGearman\Worker\Worker
+     */
+    public function setConnectionConfig(array $connectionConfig)
+    {
+        $this->connectionConfig = $connectionConfig;
+        return $this;
+    }
+
+
+    /**
+     * Get connection config
+     * Returns currently set connection config.
+     * @return array
+     */
+    public function getConnectionConfig()
+    {
+        return $this->connectionConfig;
+    }
 
 
     /**
@@ -176,21 +187,33 @@ class Worker
     {
         if(!$this->gearmanWorker)
         {
+            //check config
+            if(!$this->config || !$this->connectionConfig)
+            {
+                $message = "Can't start worker. Either configuration or ";
+                $message = "connection properties missing.";
+                throw new ConfigurationException($message);
+            }
+
             //start new worker
             $this->gearmanWorker = new GearmanWorker;
 
             //set timeout
-            if(null != $this->getWorkerTimeout())
-                $this->gearmanWorker->setTimeout($this->getWorkerTimeout());
+            $timeout = $this->connectionConfig['timeout'];
+            if($timeout)
+                $this->gearmanWorker->setTimeout($timeout);
 
             //add gearman servers
-            $servers = $this->getServers();
-            foreach($servers as $server)
+            foreach($this->connectionConfig['servers'] as $server)
             {
                 $this->gearmanWorker->addServer(
                     $server['host'],
                     $server['port']);
             }
+
+            //add jobs
+            foreach($this->config['jobs'] as $job)
+                $this->addJob($job);
 
             //register worker capabilities
             $jobs = $this->getJobs();
@@ -205,77 +228,6 @@ class Worker
         }
 
         return $this->gearmanWorker;
-    }
-
-
-    /**
-     * Set worker timeout
-     * Sets worker timeout value in milliseconds
-     *
-     * @param int $milliseconds
-     * @return \ShiftGearman\Worker\Worker
-     */
-    public function setWorkerTimeout($milliseconds)
-    {
-        $this->workerTimeout = $milliseconds;
-        return $this;
-    }
-
-
-    /**
-     * Get worker timeout
-     * Returns current timeout value in milliseconds.
-     * @return int|null
-     */
-    public function getWorkerTimeout()
-    {
-        return $this->workerTimeout;
-    }
-
-
-    /**
-     * Set servers
-     * Allows to set a pool of gearman servers to listen to.
-     *
-     * @param array $servers
-     * @return \ShiftGearman\Worker\Worker
-     */
-    public function setServers(array $servers)
-    {
-        foreach($servers as $server)
-        {
-            $host = $server['host'] ?: null;
-            $port = $server['port'] ?: null;
-            $this->addServer($host, $port);
-        }
-
-        return $this;
-    }
-
-
-    /**
-     * Add server
-     * Adds a single gearman server to listen to.
-     *
-     * @param string $host
-     * @param int $port
-     * @return \ShiftGearman\Worker\Worker
-     */
-    public function addServer($host, $port = 4730)
-    {
-        $this->servers[] = array($host, $port);
-        return $this;
-    }
-
-
-    /**
-     * Get servers
-     * Return an array of currently configured gearman servers.
-     * @return array
-     */
-    public function getServers()
-    {
-        return $this->servers;
     }
 
 
@@ -362,5 +314,26 @@ class Worker
     }
 
 
+    /**
+     * Run
+     * Connects to gearman server, registers configured jobs and waits
+     * for gearman to trigger.
+     */
+    public function run()
+    {
+        $worker = $this->getGearmanWorker();
 
-}// class ends here
+        echo 'Waiting for job...' . PHP_EOL;
+        while($worker->work())
+        {
+            if($worker->returnCode() != GEARMAN_SUCCESS)
+            {
+              echo "return_code: " . $worker->returnCode() . "\n";
+              break;
+            }
+        }
+    }
+
+
+
+} // class ends here
