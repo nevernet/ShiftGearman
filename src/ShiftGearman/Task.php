@@ -26,6 +26,7 @@ namespace ShiftGearman;
 
 use DateTime;
 use DateInterval;
+use DateTimeZone;
 use ShiftGearman\Exception\DomainException;
 
 /**
@@ -38,7 +39,6 @@ use ShiftGearman\Exception\DomainException;
  */
 class Task
 {
-
     /*
      * Task properties
      */
@@ -51,7 +51,7 @@ class Task
      * @ORM\Column(type = "string", length = 250, unique = true)
      * @var string
      */
-    protected $taskId;
+    protected $id;
 
     /**
      * Client connection to send this task to.
@@ -136,32 +136,33 @@ class Task
     public function __construct()
     {
         //set unique
-        $this->setTaskId(crc32(microtime()));
+        $this->setId(uniqid());
     }
 
 
     /**
-     * Set task id
+     * Set id
      * Sets unique job task id.
      *
-     * @param string $taskId
+     * @param string $id
      * @return \ShiftGearman\Task
      */
-    public function setTaskId($taskId)
+    public function setId($id)
     {
-        $this->taskId = $taskId;
+        $this->id = $id;
         return $this;
     }
 
 
     /**
-     * Get task id
+     * Get id
      * Returns currently set job task id.
+     *
      * @return string | null
      */
-    public function getTastId()
+    public function getId()
     {
-        return $this->taskId;
+        return $this->id;
     }
 
 
@@ -317,16 +318,60 @@ class Task
 
 
     /**
-     * Set repeat times
-     * Sets how much times to repeat current task. Repetition requires
-     * an interval to be provided.
+     * Set run at
+     * Sets a datetime this job would be subitted to gearman.
+     * Note: a special scheduler worker required.
      *
-     * @param $times
-     * @return Task
+     * @param \DateTime $datetime
+     * @return \ShiftGearman\Task
      */
-    public function setRepeatTimes($times)
+    public function setStart(DateTime $datetime)
     {
-        $this->repeatTimes($times);
+        //convert to UTC if not
+        if('UTC' != $datetime->getTimezone()->getName())
+            $datetime->setTimezone(new DateTimeZone('UTC'));
+
+        $this->start = $datetime;
+        $this->runInBackground();
+        return $this;
+    }
+
+
+    /**
+     * Get run at
+     * Returns scheduled datetime or null meaning run at once.
+     *
+     * @return \DateTime | void
+     */
+    public function getStart()
+    {
+        return $this->start;
+    }
+
+    /**
+     * Set repeat
+     * A handy shortcut to quickly set task repetition properties.
+     *
+     * @param int $times
+     * @param string $interval
+     * @throws \ShiftGearman\Exception\DomainException
+     * @return \ShiftGearman\Task
+     */
+    public function setRepeat($times, $interval)
+    {
+        //evaluate interval
+        try {
+            new DateInterval((string) $interval);
+        } catch(\Exception $exception) {
+            unset($interval);
+        }
+
+        if(!is_numeric($times) || !isset($interval))
+            throw new DomainException("Task repetition settings invalid");
+
+        $this->runInBackground();
+        $this->repeatTimes = $times;
+        $this->repeatInterval = $interval;
         return $this;
     }
 
@@ -339,21 +384,7 @@ class Task
      */
     public function getRepeatTimes()
     {
-        return $this->repeatInterval;
-    }
-
-
-    /**
-     * Set repeat interval
-     * Sets task repetition interval.
-     *
-     * @param \DateInterval $interval
-     * @return \ShiftGearman\Task
-     */
-    public function setRepeatInterval(DateInterval $interval)
-    {
-        $this->repeatInterval = $interval;
-        return $this;
+        return $this->repeatTimes;
     }
 
 
@@ -368,56 +399,10 @@ class Task
     }
 
 
-    /**
-     * Set repeat
-     * A handy shortcut to quickly set task repetition properties.
-     *
-     * @param $times
-     * @param $interval
-     * @return Task
-     * @throws Exception\DomainException
-     */
-    public function setRepeat($times, $interval)
-    {
-        if(!$interval instanceof DateInterval)
-            $interval = new DateInterval($interval);
-
-        if(!is_numeric($times) || !$interval instanceof DateInterval)
-            throw new DomainException("Task repetition settings invalid");
-
-        $this->runInBackground();
-        $this->repeatTimes = $times;
-        $this->repeatInterval = new DateInterval($interval);
-        return $this;
-    }
 
 
-    /**
-     * Set run at
-     * Sets a datetime this job would be subitted to gearman.
-     * Note: a special scheduler worker required.
-     *
-     * @param \DateTime $datetime
-     * @return \ShiftGearman\Task
-     */
-    public function setStart(DateTime $datetime)
-    {
-        $this->runAt = $datetime;
-        $this->runInBackground();
-        return $this;
-    }
 
 
-    /**
-     * Get run at
-     * Returns scheduled datetime or null meaning run at once.
-     *
-     * @return \DateTime | void
-     */
-    public function getStart()
-    {
-        return $this->runAt;
-    }
 
 
 

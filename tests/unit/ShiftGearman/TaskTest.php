@@ -27,6 +27,8 @@ namespace ShiftTest\Unit\ShiftGearman;
 use Mockery;
 use ShiftTest\TestCase;
 
+use DateTime;
+use DateTimeZone;
 use ShiftGearman\Task;
 
 /**
@@ -51,6 +53,216 @@ class TaskTest extends TestCase
         $task = new Task;
         $this->assertInstanceOf('ShiftGearman\Task', $task);
     }
+
+
+    /**
+     * Test that we create random task id at instantiation.
+     * @test
+     */
+    public function createTaskIdUponInstantiation()
+    {
+        $task = new Task;
+        $this->assertNotNull($task->getId());
+    }
+
+
+    /**
+     * Test that we are able to set custom task id.
+     * @test
+     */
+    public function canSetTaskId()
+    {
+        $customId = '123';
+        $task = new Task;
+        $task->setId($customId);
+        $this->assertEquals($customId, $task->getId());
+    }
+
+    /**
+     * Test that we are able to set client for this task to be executed with.
+     * @test
+     */
+    public function canSetClientName()
+    {
+        $task = new Task;
+        $this->assertEquals('default', $task->getClientName());
+
+        $client = 'test';
+        $task->setClientName($client);
+        $this->assertEquals($client, $task->getClientName());
+    }
+
+
+    /**
+     * Test that tasks run in foreground by default.
+     * @test
+     */
+    public function runInForegroundByDefault()
+    {
+        $task = new Task;
+        $this->assertFalse($task->isBackground());
+    }
+
+
+    /**
+     * Test that we are able to set task to be run in background.
+     * @test
+     */
+    public function canSetTaskToRunInBackground()
+    {
+        $task = new Task;
+        $task->runInBackground();
+        $this->assertTrue($task->isBackground());
+    }
+
+
+    /**
+     * Test that we run tasks with 'normal' priority by default
+     * @test
+     */
+    public function defaultPriorityIsNormal()
+    {
+        $task = new Task;
+        $this->assertEquals('normal', $task->getPriority());
+    }
+
+
+    /**
+     * Test that we can set task to run with high priority
+     * @test
+     */
+    public function canSetHighPriority()
+    {
+        $task = new Task;
+        $this->assertNotEquals('high', $task->getPriority());
+
+        $task->priorityHigh();
+        $this->assertEquals('high', $task->getPriority());
+    }
+
+
+    /**
+     * Test that we can set task to run with normal priority
+     * @test
+     */
+    public function canSetNormalPriority()
+    {
+        $task = new Task;
+        $task->priorityHigh();
+        $this->assertNotEquals('normal', $task->getPriority());
+
+        $task->priorityNormal();
+        $this->assertEquals('normal', $task->getPriority());
+    }
+
+
+    /**
+     * Test that we can set task to run with low priority
+     * @test
+     */
+    public function canSetLowPriority()
+    {
+        $task = new Task;
+        $task->priorityHigh();
+        $this->assertNotEquals('low', $task->getPriority());
+
+        $task->priorityLow();
+        $this->assertEquals('low', $task->getPriority());
+    }
+
+
+    /**
+     * Test that we are able to set job name for a task.
+     * @test
+     */
+    public function canSetJobName()
+    {
+        $job = 'example.job.name';
+        $task = new Task;
+        $task->setJobName($job);
+        $this->assertEquals($job, $task->getJobName());
+    }
+
+
+    /**
+     * Test that we can set workload for the job.
+     * @test
+     */
+    public function testCanSetWorkload()
+    {
+        $workload = 'some-workload-for-the-job';
+        $task = new Task;
+        $task->setWorkload($workload);
+        $this->assertEquals($workload, $task->getWorkload());
+    }
+
+
+    /**
+     * Test that we can set start date for the task.
+     * @test
+     */
+    public function canSetStartDate()
+    {
+        $start = new DateTime;
+        $this->assertEquals('UTC', $start->getTimezone()->getName());
+
+        $task = new Task;
+        $task->setStart($start);
+        $this->assertEquals($start, $task->getStart());
+    }
+
+
+    /**
+     * Test that we do convert datetime to UTC timezone if its not.
+     * @test
+     */
+    public function convertStartDateToUtcIfNot()
+    {
+        $start = new DateTime;
+        $start->setTimezone(new DateTimeZone('Europe/Moscow'));
+        $this->assertNotEquals('UTC', $start->getTimezone()->getName());
+
+        $task = new Task;
+        $task->setStart($start);
+
+        $resultingStart = $task->getStart();
+        $this->assertEquals('UTC', $resultingStart->getTimezone()->getName());
+    }
+
+
+    /**
+     * Test that we can set task repetition options.
+     * @test
+     */
+    public function canSetRepeat()
+    {
+        $times = 2;
+        $interval = 'P2Y4DT6H8M';
+        $task = new Task;
+        $task->setRepeat($times, $interval);
+
+        $this->assertEquals($times, $task->getRepeatTimes());
+        $this->assertEquals($interval, $task->getRepeatInterval());
+    }
+
+
+    /**
+     * Test that we throw an exception if impossible to schedule task for
+     * repetition.
+     *
+     * @test
+     * @expectedException \ShiftGearman\Exception\DomainException
+     * @expectedExceptionMessage Task repetition settings invalid
+     */
+    public function throwExceptionIfBadRepetitionSettingsProvided()
+    {
+        $times = 2;
+        $interval = 'no-a-valid-interval';
+        $task = new Task;
+        $task->setRepeat($times, $interval);
+    }
+
+
 
 
 }//class ends here
