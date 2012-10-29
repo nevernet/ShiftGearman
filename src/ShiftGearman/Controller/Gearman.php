@@ -60,7 +60,9 @@ class Gearman extends ActionController
         $task->setJobName('shiftgearman.example')
             ->setWorkload('Pass this data to task')
             ->priorityHigh()
-            ->runInBackground();
+            ->runInBackground()
+            ->setStart(new \Datetime)
+            ->setRepeat(2, 'P2D');
 
         $service = $this->locator->get('ShiftGearman\GearmanService');
         $service->add($task);

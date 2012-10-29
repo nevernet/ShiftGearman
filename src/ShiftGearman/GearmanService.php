@@ -107,7 +107,7 @@ class GearmanService
 
     /**
      * Get worker
-     * Instantiates and configures a worker.May optionally accept worker
+     * Instantiates and configures a worker. May optionally accept worker
      * configuration profile name. Then configured worker properties are
      * applied, otherwise you'll get a default worker with no servers or
      * job capabilities.
@@ -203,13 +203,25 @@ class GearmanService
      * for direct execution or schedules for the future.
      *
      * @param \ShiftGearman\Task | array $tasks
+     * @return \ShiftGearman\GearmanService
      */
     public function add($tasks, $andRun = true)
     {
         if($tasks instanceof Task)
             $tasks = array($tasks);
 
+        $scheduleUs = array();
+        foreach($tasks as $index => $task)
+        {
+            if(!$task->isScheduled())
+                continue;
 
+            $scheduleUs[] = $task;
+            unset($tasks[$index]);
+        }
+
+
+        $this->scheduleTasks($scheduleUs);
         $this->addTasks($tasks, $andRun);
     }
 
@@ -288,10 +300,24 @@ class GearmanService
     /**
      * Schedule tasks
      * Adds tasks to scheduler to be executed later.
+     *
+     * @param array $scheduledTasks
+     * @return \ShiftGearman\GearmanService
      */
-    public function scheduleTask()
+    public function scheduleTasks(array $scheduledTasks)
     {
+        if(empty($scheduledTasks))
+            return $this;
 
+        foreach($scheduledTasks as $task)
+        {
+            if($task->isScheduled())
+            {
+                //add task to scheduler queue
+            }
+        }
+
+        return $this;
     }
 
 
