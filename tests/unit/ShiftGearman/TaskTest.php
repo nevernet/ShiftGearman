@@ -29,6 +29,7 @@ use ShiftTest\TestCase;
 
 use DateTime;
 use DateTimeZone;
+use DateInterval;
 use ShiftGearman\Task;
 
 /**
@@ -260,6 +261,65 @@ class TaskTest extends TestCase
         $interval = 'no-a-valid-interval';
         $task = new Task;
         $task->setRepeat($times, $interval);
+    }
+
+
+    /**
+     * Test that tasks are executed instantly by default.
+     * @test
+     */
+    public function executeInstantlyByDefault()
+    {
+        $task = new Task;
+        $this->assertFalse($task->isScheduled());
+    }
+
+
+    /**
+     * Test that we put tasks in future to scheduler queue.
+     * @test
+     */
+    public function futureTasksAreScheduled()
+    {
+        $task = new Task;
+        $start = new DateTime;
+        $start->add(new DateInterval('P2D')); //in two days
+        $task->setStart($start);
+
+        $this->assertTrue($task->isScheduled());
+    }
+
+
+    /**
+     * Test that recurring tasks are put to scheduler queue.
+     * @test
+     */
+    public function recurringTasksAreScheduled()
+    {
+        $task = new Task;
+        $start = new DateTime;
+        $start->sub(new DateInterval('P2D')); //two days in past
+        $task->setStart($start);
+        $task->setRepeat(2, 'P1D');
+        $this->assertTrue($task->isScheduled());
+    }
+
+
+    /**
+     * Test that we can mark task as repeated by decrementing repeat times
+     * and adding interval to start date.
+     * @test
+     */
+    public function canMarkTaskAsRepeatedOnce()
+    {
+        $now = new DateTime;
+        $now->setTimezone(new DateTimeZone('UTC'));
+
+        $task = new Task;
+        $task->setStart($now)->setRepeat(2, 'P4D');
+
+        $task->repeatOnce();
+        $this->assertEquals(1, $task->getRepeatTimes());
     }
 
 

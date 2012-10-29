@@ -135,8 +135,11 @@ class Task
      */
     public function __construct()
     {
-        //set unique
+        //generate id
         $this->setId(uniqid());
+
+        //start now by default
+        $this->setStart(new DateTime);
     }
 
 
@@ -332,7 +335,6 @@ class Task
             $datetime->setTimezone(new DateTimeZone('UTC'));
 
         $this->start = $datetime;
-        $this->runInBackground();
         return $this;
     }
 
@@ -347,6 +349,7 @@ class Task
     {
         return $this->start;
     }
+
 
     /**
      * Set repeat
@@ -397,6 +400,56 @@ class Task
     {
         return $this->repeatInterval;
     }
+
+
+    /**
+     * Is scheduled
+     * A boolean method that returns a flag indicating whether this task
+     * should be scheduled. When adding a task this method will be consulted
+     * to decide whether task should be put in scheduler queue or passed
+     * directly to gearman for instant execution.
+     *
+     * @return bool
+     */
+    public function isScheduled()
+    {
+        $now = new DateTime;
+        $now->setTimezone(new DateTimeZone('UTC'));
+
+        $inFuture = ($this->start > $now);
+        $recurring = ($this->repeatTimes > 1 && isset($this->repeatInterval));
+
+        $scheduled = false;
+        if($inFuture || $recurring)
+            $scheduled = true;
+
+        return $scheduled;
+    }
+
+
+    /**
+     * Mark repeated once
+     * Marks a task as repeated once. This usually gets triggered by
+     * scheduler and used to decrement repeat times and extend start datetime
+     * with repeat interval.
+     *
+     * @return \ShiftGearman\Task
+     */
+    public function repeatOnce()
+    {
+        if($this->repeatTimes <= 0)
+            return $this;
+
+        $this->repeatTimes = $this->repeatTimes - 1;
+        $this->start = $this->start->add(
+            new DateInterval($this->repeatInterval)
+        );
+
+        return $this;
+    }
+
+
+
 
 
 
