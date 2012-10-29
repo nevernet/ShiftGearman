@@ -38,7 +38,6 @@ use ShiftGearman\Exception\DomainException;
  */
 class Task
 {
-    // ------------------------------------------------------------------------
 
     /*
      * Task properties
@@ -46,19 +45,34 @@ class Task
 
 
     /**
-     * Client connection to send this task to
+     * Unique task id
+     *
+     * @ORM\Id
+     * @ORM\Column(type = "string", length = 250, unique = true)
+     * @var string
+     */
+    protected $taskId;
+
+    /**
+     * Client connection to send this task to.
+     *
+     * @ORM\Column(type = "string", length = 50, nullable = false)
      * @var string
      */
     protected $clientName = 'default';
 
     /**
      * Run in background
+     *
+     * @ORM\Column(type = "boolean")
      * @var bool
      */
     protected $runInBackground = false;
 
     /**
      * Current task priority
+     *
+     * @ORM\Column(type = "string", length = 15, nullable = false)
      * @var string
      */
     protected $priority = 'normal';
@@ -66,51 +80,44 @@ class Task
     /**
      * Job name
      * Must be have workers capable of executing.
+     *
+     * @ORM\Column(type = "string", length = 250, nullable = false)
      * @var string
      */
     protected $jobName;
 
     /**
      * Job workload
+     *
+     * @ORM\Column(type = "text", nullable = true)
      * @var string
      */
     protected $workload;
 
     /**
-     * Unique task id
-     * @var string
-     */
-    protected $taskId;
-
-    /**
-     * Job context
-     * @var string
-     */
-    protected $context;
-
-    // ------------------------------------------------------------------------
-
-    /*
-     * Scheduling options
-     */
-
-    /**
-     * Start running a task at this time (optionally repeat with interval).
+     * Start
+     * Executes task at this time (optionally with repeat interval).
+     *
+     * @ORM\Column(type = "datetime", nullable = true)
      * @var \DateTime
      */
-    protected $start;
+    protected $start = null;
 
     /**
      * How much times to repeat a job
+     *
+     * @ORM\Column(type = "integer")
      * @var int
      */
     protected $repeatTimes = 1;
 
     /**
      * Repeat interval
-     * @var \DateInterval
+     *
+     * @ORM\Column(type = "string", length = 100, nullable = true)
+     * @var \string
      */
-    protected $repeatInterval;
+    protected $repeatInterval = null;
 
 
     // ------------------------------------------------------------------------
@@ -130,6 +137,31 @@ class Task
     {
         //set unique
         $this->setTaskId(crc32(microtime()));
+    }
+
+
+    /**
+     * Set task id
+     * Sets unique job task id.
+     *
+     * @param string $taskId
+     * @return \ShiftGearman\Task
+     */
+    public function setTaskId($taskId)
+    {
+        $this->taskId = $taskId;
+        return $this;
+    }
+
+
+    /**
+     * Get task id
+     * Returns currently set job task id.
+     * @return string | null
+     */
+    public function getTastId()
+    {
+        return $this->taskId;
     }
 
 
@@ -282,63 +314,6 @@ class Task
     {
         return $this->workload;
     }
-
-
-    /**
-     * Set task id
-     * Sets unique job task id.
-     *
-     * @param string $taskId
-     * @return \ShiftGearman\Task
-     */
-    public function setTaskId($taskId)
-    {
-        $this->taskId = $taskId;
-        return $this;
-    }
-
-
-    /**
-     * Get task id
-     * Returns currently set job task id.
-     * @return string | null
-     */
-    public function getTastId()
-    {
-        return $this->taskId;
-    }
-
-
-    /**
-     * Set context
-     * Sets unique job context
-     *
-     * @param string $context
-     * @return \ShiftGearman\Task
-     */
-    public function setContext($context)
-    {
-        $this->context = $context;
-        return $this;
-    }
-
-
-    /**
-     * Get context
-     * Returns currently set job context.
-     * @return string | null
-     */
-    public function getContext()
-    {
-        return $this->context;
-    }
-
-
-    // ------------------------------------------------------------------------
-
-    /*
-     * Task scheduling api
-     */
 
 
     /**
