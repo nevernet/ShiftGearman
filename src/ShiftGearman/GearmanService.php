@@ -197,61 +197,36 @@ class GearmanService
     }
 
 
-
     /**
-     * Run task
-     * Accepts a task and passes it to gearman server for execution.
+     * Add
+     * Accepts a task or an array of tasks and dispatches it either
+     * for direct execution or schedules for the future.
      *
-     * @param \ShiftGearman\Task $task
-     * @return void
+     * @param \ShiftGearman\Task | array $tasks
      */
-    public function runTask(Task $task)
+    public function add($tasks, $andRun = true)
     {
-        $client = $this->getClient($task->getClientName());
-
-        $priority = $task->getPriority();
-        switch($priority)
-        {
-
-            case 'high':
-                $method = 'doHigh';
-                if($task->isBackground())
-                    $method = 'doHighBackground';
-            break;
+        if($tasks instanceof Task)
+            $tasks = array($tasks);
 
 
-            case 'low':
-                $method = 'doLow';
-                if($task->isBackground())
-                    $method = 'doLowBackground';
-            break;
-
-            default:
-                $method = 'do';
-                if($task->isBackground())
-                    $method = 'doBackground';
-            break;
-        }
-
-        //add task to queue
-        $client->$method(
-            $task->getJobName(),
-            $task->getWorkload(),
-            $task->getTastId()
-        );
+        $this->addTasks($tasks, $andRun);
     }
 
-    
+
+
+
     /**
-     * Run tasks
+     * Add tasks
      * Accepts an array of tasks to be executed at once. Tasks may have
      * different connections configured for them, so we first sort all tasks
      * by connection.
      *
      * @param array $tasks
+     * @param bool $andRun
      * @return void
      */
-    public function runTasks(array $tasks)
+    public function addTasks(array $tasks, $andRun = true)
     {
         $tasksByClient = array();
         foreach($tasks as $task)
@@ -304,9 +279,36 @@ class GearmanService
             }
 
             //run client tasks at once
-            $client->runTasks();
+            if($andRun)
+                $client->runTasks();
         }
     }
+
+
+    /**
+     * Schedule tasks
+     * Adds tasks to scheduler to be executed later.
+     */
+    public function scheduleTask()
+    {
+
+    }
+
+
+    /**
+     * Run scheduled tasks
+     * Retrieves all due tasks from scheduler queue and passes them
+     * for execution to gearman. This usually would be triggered by
+     * a worker process or cron.
+     */
+    public function runScheduledTasks()
+    {
+        //get due tasks
+        //pass to gearman
+
+        //what happens if task fails?
+    }
+
 
 
 

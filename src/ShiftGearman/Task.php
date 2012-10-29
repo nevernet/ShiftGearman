@@ -25,6 +25,8 @@
 namespace ShiftGearman;
 
 use DateTime;
+use DateInterval;
+use ShiftGearman\Exception\DomainException;
 
 /**
  * Gearman task
@@ -93,10 +95,10 @@ class Task
      */
 
     /**
-     * Run at once or schedule for a certain datetime.
-     * @var int | void
+     * Start running a task at this time (optionally repeat with interval).
+     * @var \DateTime
      */
-    protected $runAt;
+    protected $start;
 
     /**
      * How much times to repeat a job
@@ -105,34 +107,10 @@ class Task
     protected $repeatTimes = 1;
 
     /**
-     * Repeat each minute (0-59)
-     * @var int
+     * Repeat interval
+     * @var \DateInterval
      */
-    protected $repeatEachMinute;
-
-    /**
-     * Repeat each hour (0-23)
-     * @var int
-     */
-    protected $repeatEachHour;
-
-    /**
-     * Repeat each day of month (1-31)
-     * @var int
-     */
-    protected $repeatEachDayOfMonth;
-
-    /**
-     * Repeat each month (1-12)
-     * @var int
-     */
-    protected $repeatEachMonth;
-
-    /**
-     * Repeat each day of week (1-7)
-     * @var int
-     */
-    protected $repeatEachDayOfWeek;
+    protected $repeatInterval;
 
 
     // ------------------------------------------------------------------------
@@ -140,6 +118,20 @@ class Task
     /*
      * Task public API
      */
+
+
+    /**
+     * Construct
+     * Instantiates task directive.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        //set unique
+        $this->setTaskId(crc32(microtime()));
+    }
+
 
 
     /**
@@ -342,6 +334,89 @@ class Task
     }
 
 
+    // ------------------------------------------------------------------------
+
+    /*
+     * Task scheduling api
+     */
+
+
+    /**
+     * Set repeat times
+     * Sets how much times to repeat current task. Repetition requires
+     * an interval to be provided.
+     *
+     * @param $times
+     * @return Task
+     */
+    public function setRepeatTimes($times)
+    {
+        $this->repeatTimes($times);
+        return $this;
+    }
+
+
+    /**
+     * Get repeat times
+     * Returns current task repetition value.
+     *
+     * @return int
+     */
+    public function getRepeatTimes()
+    {
+        return $this->repeatInterval;
+    }
+
+
+    /**
+     * Set repeat interval
+     * Sets task repetition interval.
+     *
+     * @param \DateInterval $interval
+     * @return \ShiftGearman\Task
+     */
+    public function setRepeatInterval(DateInterval $interval)
+    {
+        $this->repeatInterval = $interval;
+        return $this;
+    }
+
+
+    /**
+     * Get repeat interval
+     * Returns currently set repetition interval.
+     * @return \DateInterval | void
+     */
+    public function getRepeatInterval()
+    {
+        return $this->repeatInterval;
+    }
+
+
+    /**
+     * Set repeat
+     * A handy shortcut to quickly set task repetition properties.
+     *
+     * @param $times
+     * @param $interval
+     * @return Task
+     * @throws Exception\DomainException
+     */
+    public function setRepeat($times, $interval)
+    {
+        if(!$interval instanceof DateInterval)
+            $interval = new DateInterval($interval);
+
+        if(!is_numeric($times) || !$interval instanceof DateInterval)
+            throw new DomainException("Task repetition settings invalid");
+
+        $this->runInBackground();
+        $this->repeatTimes = $times;
+        $this->repeatInterval = new DateInterval($interval);
+        return $this;
+    }
+
+
     /**
      * Set run at
      * Sets a datetime this job would be subitted to gearman.
@@ -350,9 +425,10 @@ class Task
      * @param \DateTime $datetime
      * @return \ShiftGearman\Task
      */
-    public function setRunAt(DateTime $datetime)
+    public function setStart(DateTime $datetime)
     {
         $this->runAt = $datetime;
+        $this->runInBackground();
         return $this;
     }
 
@@ -363,10 +439,11 @@ class Task
      *
      * @return \DateTime | void
      */
-    public function getRunAt()
+    public function getStart()
     {
         return $this->runAt;
     }
+
 
 
 
