@@ -27,8 +27,10 @@ namespace ShiftGearman;
 
 use GearmanClient;
 use Zend\Di\Locator;
+
 use ShiftGearman\Module;
 use ShiftGearman\Exception\ConfigurationException;
+use ShiftGearman\Scheduler\SchedulerRepository;
 
 
 /**
@@ -54,6 +56,12 @@ class GearmanService
      * @var array
      */
     protected $config;
+
+    /**
+     * Scheduler repository instance
+     * @var \ShiftGearman\Scheduler\SchedulerRepository
+     */
+    protected $schedulerRepository;
 
     /**
      * An array of gearman client connections.
@@ -102,6 +110,42 @@ class GearmanService
             $this->config = Module::getModuleConfig()->toArray();
 
         return $this->config;
+    }
+
+
+    /**
+     * Set scheduler repository
+     * Allows you to inject arbitrary scheduler repository to be used
+     * within the service.
+     *
+     * @param \ShiftGearman\Scheduler\SchedulerRepository $repository
+     * @return \ShiftGearman\GearmanService
+     */
+    public function setSchedulerRepository(SchedulerRepository $repository)
+    {
+        $this->schedulerRepository = $repository;
+        return $this;
+    }
+
+
+    /**
+     * Get scheduler repository
+     * Checks if we already have an instance of repository injected and
+     * returns that. Otherwise retrieves repository from doctrine.
+     *
+     * @return Scheduler\SchedulerRepository
+     */
+    public function getSchedulerRepository()
+    {
+        //retrieve from doctrine
+        if(!$this->schedulerRepository)
+        {
+            $entityName = 'ShiftGearman\Task';
+            $em = $this->locator->get('Doctrine')->getEntityManager();
+            $this->schedulerRepository = $em->getRepository($entityName);
+        }
+
+        return $this->schedulerRepository;
     }
 
 
@@ -210,6 +254,7 @@ class GearmanService
         if($tasks instanceof Task)
             $tasks = array($tasks);
 
+        //schedule tasks
         $scheduleUs = array();
         foreach($tasks as $index => $task)
         {
@@ -220,9 +265,11 @@ class GearmanService
             unset($tasks[$index]);
         }
 
-
+        //add others directly
         $this->scheduleTasks($scheduleUs);
         $this->addTasks($tasks, $andRun);
+
+        return $this;
     }
 
 

@@ -55,5 +55,64 @@ class GearmanServiceTest extends TestCase
     }
 
 
+    /**
+     * Test that we are able to inject arbitrary config.
+     * @test
+     */
+    public function canInjectConfig()
+    {
+        $config = array('me-is-config');
+        $service = new GearmanService($this->getLocator());
+        $service->setConfig($config);
+        $this->assertEquals($config, $service->getConfig());
+    }
+
+
+    /**
+     * Test that we are able to retrieve default configuration from module
+     * if none is injected.
+     * @test
+     */
+    public function canGetDefaultConfigFromModule()
+    {
+        $service = new GearmanService($this->getLocator());
+        $config = $service->getConfig();
+
+        $this->assertTrue(is_array($config));
+        $this->assertFalse(empty($config));
+    }
+
+
+    /**
+     * Test that we can inject arbitrary scheduler repository.
+     * @test
+     */
+    public function canInjectSchedulerRepository()
+    {
+        $repository = 'ShiftGearman\Scheduler\SchedulerRepository';
+        $repository = Mockery::mock($repository);
+
+        $service = new GearmanService($this->getLocator());
+        $service->setSchedulerRepository($repository);
+        $this->assertEquals($repository, $service->getSchedulerRepository());
+    }
+
+
+    /**
+     * Test that we can get scheduler repository from doctrine if none
+     * is injected.
+     * @test
+     */
+    public function canGetSchedulerRepositoryFromDoctrine()
+    {
+        $service = new GearmanService($this->getLocator());
+        $repository = $service->getSchedulerRepository();
+        $this->assertInstanceOf(
+            'ShiftGearman\Scheduler\SchedulerRepository',
+            $repository
+        );
+    }
+
+
 
 }//class ends here

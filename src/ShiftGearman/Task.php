@@ -27,12 +27,16 @@ namespace ShiftGearman;
 use DateTime;
 use DateInterval;
 use DateTimeZone;
+use Doctrine\ORM\Mapping as ORM;
 use ShiftGearman\Exception\DomainException;
 
 /**
  * Gearman task
  * Task is a request to execute a certain job with parameters. Essentially
  * it is a directive of what to execute, how, when and with what parameters.
+ *
+ * @ORM\Entity(repositoryClass="ShiftGearman\Scheduler\SchedulerRepository")
+ * @ORM\Table(name="shiftgearman_scheduler")
  *
  * @category    Projectshift
  * @package     ShiftGearman
