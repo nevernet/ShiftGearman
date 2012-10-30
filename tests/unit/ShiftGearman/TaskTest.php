@@ -318,7 +318,7 @@ class TaskTest extends TestCase
         $task = new Task;
         $task->setStart($now)->setRepeat(2, 'P4D');
 
-        $task->repeatOnce();
+        $task->markRepeatedOnce();
         $this->assertEquals(1, $task->getRepeatTimes());
     }
 

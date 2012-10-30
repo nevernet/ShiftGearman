@@ -267,14 +267,17 @@ class GearmanService
 
         //add others directly
         $this->scheduleTasks($scheduleUs);
-        $this->addTasks($tasks, $andRun);
+
+        if(class_exists('GearmanClient'))
+            $this->runTasksWithGearman($tasks, $andRun);
 
         return $this;
     }
 
 
     /**
-     * Add tasks
+     * Run tasks with gearman
+     * Basically what it does is passing task to gearman for execution.
      * Accepts an array of tasks to be executed at once. Tasks may have
      * different connections configured for them, so we first sort all tasks
      * by connection.
@@ -283,7 +286,7 @@ class GearmanService
      * @param bool $andRun
      * @return void
      */
-    public function addTasks(array $tasks, $andRun = true)
+    public function runTasksWithGearman(array $tasks, $andRun = true)
     {
         $tasksByClient = array();
         foreach($tasks as $task)
@@ -291,7 +294,6 @@ class GearmanService
             $clientName = $task->getClientName();
             $tasksByClient[$clientName][] = $task;
         }
-
 
         foreach($tasksByClient as $clientName => $clientTasks)
         {
@@ -330,8 +332,8 @@ class GearmanService
                 $client->$method(
                     $task->getJobName(),
                     $task->getWorkload(),
-                    $task->getContext(),
-                    $task->getTastId()
+                    null, //context
+                    $task->getId()
                 );
             }
 
@@ -344,7 +346,8 @@ class GearmanService
 
     /**
      * Schedule tasks
-     * Adds tasks to scheduler to be executed later.
+     * Adds tasks to scheduler queue to be executed later.
+     * There must be a worker that runs scheduled tasks.
      *
      * @param array $scheduledTasks
      * @return \ShiftGearman\GearmanService
@@ -354,13 +357,10 @@ class GearmanService
         if(empty($scheduledTasks))
             return $this;
 
+        $last = array_pop($scheduledTasks);
         foreach($scheduledTasks as $task)
-        {
-            if($task->isScheduled())
-            {
-                //add task to scheduler queue
-            }
-        }
+            $this->getSchedulerRepository()->schedule($task, false);
+        $this->getSchedulerRepository()->schedule($last, true);
 
         return $this;
     }

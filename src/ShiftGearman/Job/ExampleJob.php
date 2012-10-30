@@ -57,6 +57,13 @@ class ExampleJob extends AbstractJob
      */
     public function execute(GearmanJob $job)
     {
+        $workload = $job->workload();
+        if($workload == 'quick')
+        {
+            echo 'Executing in quick mode.' . PHP_EOL;
+            return;
+        }
+
         echo '-------------------------------------------' . PHP_EOL;
         echo 'Executing job' . PHP_EOL . PHP_EOL;
 

@@ -439,7 +439,7 @@ class Task
      *
      * @return \ShiftGearman\Task
      */
-    public function repeatOnce()
+    public function markRepeatedOnce()
     {
         if($this->repeatTimes <= 0)
             return $this;
