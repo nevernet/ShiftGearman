@@ -43,8 +43,6 @@ use ShiftGearman\Task;
  */
 class GearmanServiceTest extends TestCase
 {
-
-
     /**
      * Test that we are able to get client connection by name.
      * @test

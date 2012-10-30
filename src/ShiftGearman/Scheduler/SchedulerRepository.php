@@ -26,6 +26,8 @@
 namespace ShiftGearman\Scheduler;
 
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\EntityManager;
+use ShiftGearman\Task;
 
 /**
  * Scheduler repository
@@ -37,6 +39,72 @@ use Doctrine\ORM\EntityRepository;
  */
 class SchedulerRepository extends EntityRepository
 {
+    /**
+     * Entity manager instance
+     * @var \Doctrine\ORM\EntityManager
+     */
+    protected $_em;
+
+
+    /**
+     * Set entity manager
+     * Allows you to inject arbitrary entity manager to be used within
+     * repository. This is quite useful for testing.
+     *
+     * @param \Doctrine\ORM\EntityManager $entityManager
+     * @return SchedulerRepository
+     */
+    public function setEntityManager(EntityManager $entityManager)
+    {
+        $this->_em = $entityManager;
+        return $this;
+    }
+
+
+    /**
+     * Get entity manager
+     * Returns entity manager currently set for this repository.
+     *
+     * @return \Doctrine\ORM\EntityManager
+     */
+    public function getEntityManager()
+    {
+        return $this->_em;
+    }
+
+
+
+    public function schedule(Task $task, $andFlush = true)
+    {
+
+    }
+
+
+    public function save(Task $task, $andFlush = true)
+    {
+
+    }
+
+
+    public function delete(Task $task, $andFlush = true)
+    {
+
+    }
+
+
+
+    public function findById()
+    {
+
+    }
+
+
+    public function getDueTasks()
+    {
+        
+    }
+
+
 
 
 
