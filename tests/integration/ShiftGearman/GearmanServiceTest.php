@@ -40,9 +40,33 @@ use ShiftGearman\Task;
  * @subpackage  Tests
  *
  * @group       integration
+ * @group z
  */
 class GearmanServiceTest extends TestCase
 {
+    /**
+     * Entity manager instance
+     * @var \Doctrine\ORM\EntityManager
+     */
+    protected $em;
+
+
+    /**
+     * Set up tests
+     * @return void
+     */
+    public function setUp()
+    {
+        parent::setUp();
+
+        //preserve entity manager
+        $this->em = $this->getLocator()->get('Doctrine')->getEntityManager();
+
+        //get db helper
+        $helper = $this->getDbHelper();
+    }
+
+
     /**
      * Test that we are able to get client connection by name.
      * @test
@@ -105,6 +129,7 @@ class GearmanServiceTest extends TestCase
     /**
      * Test that we can pass a task for gearman execution.
      * @test
+     * @group zzz
      */
     public function canPassTaskForExecutionToGearman()
     {
@@ -197,7 +222,70 @@ class GearmanServiceTest extends TestCase
         $service = new GearmanService($this->getLocator());
         $service->setSchedulerRepository($repository);
         $service->add($task);
+    }
 
+
+    /**
+     * Test that we can run scheduled tasks with a dedicated runner.
+     * @test
+     * @group zz
+     */
+    public function canRunScheduledTasks()
+    {
+        $now = new \DateTime;
+        $now->setTimezone(new \DateTimeZone('UTC'));
+        $now->add(new \DateInterval('PT1S'));
+
+        //once in future
+        $once = new Task;
+        $once->setId('once');
+        $onceId = $once->getId();
+        $once->setJobName('shiftgearman.example');
+        $once->setWorkload('123');
+        $once->setStart($now);
+        $this->assertTrue($once->isScheduled());
+
+        //recurring
+        $recurring = new Task;
+        $recurring->setId('recurring');
+        $recurringId = $recurring->getId();
+        $recurring->setJobName('shiftgearman.example');
+        $recurring->setWorkload('quick');
+        $recurring->setStart($now);
+        $recurring->setRepeat(2, 'PT2S');
+
+        $service = new GearmanService($this->getLocator());
+        $service->add(array($once, $recurring));
+
+        //sleep for some time
+        sleep(2);
+
+        //now run scheduled tasks
+        $service->runScheduledTasks();
+        $this->em->clear();
+
+        //assert once executed and removed
+        $this->assertNull($service->getSchedulerRepository()->findById(
+            $onceId
+        ));
+
+        //assert recurring twice updated
+        $recurringUpdated = $service->getSchedulerRepository()->findById(
+            $recurringId
+        );
+        $this->assertEquals(1, $recurringUpdated->getRepeatTimes());
+
+        //now sleep a bit more
+        sleep(3);
+
+        //now run scheduled tasks
+        $service->runScheduledTasks();
+        $this->em->clear();
+
+        //assert recurring repeated for the last time and removed
+        $this->assertNull($service->getSchedulerRepository()->findById(
+            $recurringId
+        ));
     }
 
 

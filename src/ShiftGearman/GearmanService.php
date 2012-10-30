@@ -249,7 +249,7 @@ class GearmanService
      * @param \ShiftGearman\Task | array $tasks
      * @return \ShiftGearman\GearmanService
      */
-    public function add($tasks, $andRun = true)
+    public function add($tasks)
     {
         if($tasks instanceof Task)
             $tasks = array($tasks);
@@ -258,7 +258,7 @@ class GearmanService
         $scheduleUs = array();
         foreach($tasks as $index => $task)
         {
-            if(!$task->isScheduled())
+            if(!$task->isScheduled() || null == $task->getJobName())
                 continue;
 
             $scheduleUs[] = $task;
@@ -268,8 +268,8 @@ class GearmanService
         //add others directly
         $this->scheduleTasks($scheduleUs);
 
-        if(class_exists('GearmanClient'))
-            $this->runTasksWithGearman($tasks, $andRun);
+        if(class_exists('GearmanClient') && !empty($tasks))
+            $this->runTasksWithGearman($tasks);
 
         return $this;
     }
@@ -283,63 +283,52 @@ class GearmanService
      * by connection.
      *
      * @param array $tasks
-     * @param bool $andRun
      * @return void
      */
-    public function runTasksWithGearman(array $tasks, $andRun = true)
+    public function runTasksWithGearman(array $tasks)
     {
-        $tasksByClient = array();
         foreach($tasks as $task)
         {
-            $clientName = $task->getClientName();
-            $tasksByClient[$clientName][] = $task;
-        }
+            if(null == $task->getJobName())
+                continue;
 
-        foreach($tasksByClient as $clientName => $clientTasks)
-        {
             //get client
-            $client = $this->getClient($clientName);
+            $client = $this->getClient($task->getClientName());
 
-            //add task
-            foreach($clientTasks as $clientTask)
+            //figure out priority
+            $priority = $task->getPriority();
+            switch($priority)
             {
-                //figure out priority
-                $priority = $clientTask->getPriority();
-                switch($priority)
-                {
 
-                    case 'high':
-                        $method = 'addTaskHigh';
-                        if($task->isBackground())
-                            $method = 'addTaskHighBackground';
-                    break;
+                case 'high':
+                    $method = 'addTaskHigh';
+                    if($task->isBackground())
+                        $method = 'addTaskHighBackground';
+                break;
 
 
-                    case 'low':
-                        $method = 'addTaskHigh';
-                        if($task->isBackground())
-                            $method = 'addTaskHighBackground';
-                    break;
+                case 'low':
+                    $method = 'addTaskHigh';
+                    if($task->isBackground())
+                        $method = 'addTaskHighBackground';
+                break;
 
-                    default:
-                        $method = 'addTask';
-                        if($task->isBackground())
-                            $method = 'addTaskBackground';
-                    break;
-                }
-
-                //add
-                $client->$method(
-                    $task->getJobName(),
-                    $task->getWorkload(),
-                    null, //context
-                    $task->getId()
-                );
+                default:
+                    $method = 'addTask';
+                    if($task->isBackground())
+                        $method = 'addTaskBackground';
+                break;
             }
 
-            //run client tasks at once
-            if($andRun)
-                $client->runTasks();
+            //add
+            $client->$method(
+                $task->getJobName(),
+                $task->getWorkload(),
+                null, //context
+                $task->getId()
+            );
+            $client->runTasks();
+
         }
     }
 
@@ -359,8 +348,8 @@ class GearmanService
 
         $last = array_pop($scheduledTasks);
         foreach($scheduledTasks as $task)
-            $this->getSchedulerRepository()->schedule($task, false);
-        $this->getSchedulerRepository()->schedule($last, true);
+            $this->getSchedulerRepository()->save($task, false);
+        $this->getSchedulerRepository()->save($last, true); //and flush
 
         return $this;
     }
@@ -371,13 +360,26 @@ class GearmanService
      * Retrieves all due tasks from scheduler queue and passes them
      * for execution to gearman. This usually would be triggered by
      * a worker process or cron.
+     *
+     * @return void
      */
     public function runScheduledTasks()
     {
-        //get due tasks
-        //pass to gearman
+        $dueTasks = $this->getSchedulerRepository()->getDueTasks();
+        $this->runTasksWithGearman($dueTasks, true);
 
-        //what happens if task fails?
+        foreach($dueTasks as $index => $task)
+        {
+            $task->markRepeatedOnce();
+
+            if(1 > $task->getRepeatTimes())
+                $this->getSchedulerRepository()->delete($task, false);
+            else
+                $this->getSchedulerRepository()->save($task, false);
+        }
+
+        //flush task updates
+        $this->getSchedulerRepository()->getEntityManager()->flush();
     }
 
 

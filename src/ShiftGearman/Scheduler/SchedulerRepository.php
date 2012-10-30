@@ -158,7 +158,17 @@ class SchedulerRepository extends EntityRepository
      */
     public function getDueTasks()
     {
+        $now = new \DateTime;
+        $now->setTimezone(new \DateTimeZone('UTC'));
 
+        $builder = $this->_em->createQueryBuilder();
+        $builder->add('select', 'task');
+        $builder->add('from', 'ShiftGearman\Task task');
+        $builder->add('where', 'task.start <= :thisVeryMoment');
+        $builder->setParameter('thisVeryMoment', $now);
+
+
+        return $builder->getQuery()->getResult();
     }
 
 

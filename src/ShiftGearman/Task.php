@@ -338,6 +338,11 @@ class Task
         if('UTC' != $datetime->getTimezone()->getName())
             $datetime->setTimezone(new DateTimeZone('UTC'));
 
+        $now = new DateTime;
+        $now->setTimezone(new DateTimeZone('UTC'));
+        if($datetime > $now)
+            $this->runInBackground();
+
         $this->start = $datetime;
         return $this;
     }
@@ -445,9 +450,12 @@ class Task
             return $this;
 
         $this->repeatTimes = $this->repeatTimes - 1;
-        $this->start = $this->start->add(
-            new DateInterval($this->repeatInterval)
-        );
+        if($this->repeatInterval)
+        {
+            $interval = new DateInterval($this->repeatInterval);
+            $this->start = $this->start->add($interval);
+        }
+
 
         return $this;
     }

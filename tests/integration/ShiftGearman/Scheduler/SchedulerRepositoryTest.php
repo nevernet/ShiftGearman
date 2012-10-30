@@ -30,6 +30,7 @@ use ShiftTest\TestCase;
 use ShiftGearman\Task;
 
 
+
 /**
  * Scheduler repository tests
  * This holds integration tests for scheduler queue repository.
@@ -39,7 +40,6 @@ use ShiftGearman\Task;
  * @subpackage  Tests
  *
  * @group       integration
- * @group z
  */
 class SchedulerRepositoryTest extends TestCase
 {
@@ -209,6 +209,54 @@ class SchedulerRepositoryTest extends TestCase
         $this->em->clear();
 
         $this->assertNull($repository->findById($taskId));
+    }
+
+
+    /**
+     * Test that we are able to retrieve scheduled tasks that should be
+     * executed.
+     *
+     * @test
+     */
+    public function canGetDueTasks()
+    {
+        $past = new \DateTime;
+        $past->sub(new \DateInterval('P2Y')); //two years ago
+
+        $future = new \DateTime;
+        $future->add(new \DateInterval('P1Y')); //one year in future
+
+        $task1 = new Task;
+        $task1->setJobName('in.past');
+        $task1->setRepeat(2, 'P2D');
+        $task1->setStart($past);
+
+        $task2 = new Task;
+        $task2->setJobName('in.future');
+        $task2->setRepeat(2, 'P2D');
+        $task2->setStart($future);
+
+        $task3 = new Task;
+        $task3->setJobName('in.past');
+        $task3->setRepeat(2, 'P2D');
+        $task3->setStart($past);
+
+        $repository = $this->em->getRepository('ShiftGearman\Task');
+        $repository->save($task1, false);
+        $repository->save($task2, false);
+        $repository->save($task3);
+
+        unset($task1, $task2, $task3);
+        $this->em->clear();
+
+
+        $dueTasks = $repository->getDueTasks();
+        $this->assertTrue(is_array($dueTasks));
+        $this->assertFalse(empty($dueTasks));
+        $this->assertEquals(2, count($dueTasks));
+
+        foreach($dueTasks as $dueTask)
+            $this->assertEquals('in.past', $dueTask->getJobName());
     }
 
 
