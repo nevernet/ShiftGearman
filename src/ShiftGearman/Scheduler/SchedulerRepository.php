@@ -77,26 +77,8 @@ class SchedulerRepository extends EntityRepository
 
 
     /**
-     * Schedule task
-     * Accepts a task and persist it to scheduler queue. May optionally
-     * flush transaction.
-     *
-     * @param \ShiftGearman\Task $task
-     * @param bool $andFlush
-     * @throws \ShiftGearman\Exception\DomainException
-     * @throws \ShiftGearman\Exception\DatabaseException
-     * @return \ShiftGearman\Task
-     */
-    public function schedule(Task $task, $andFlush = true)
-    {
-
-    }
-
-
-    /**
      * Save
-     * Save changes to task. This is used to update tasks. May optionally
-     * flush transaction.
+     * Save changes to task. May optionally flush transaction.
      *
      * @param \ShiftGearman\Task $task
      * @param bool $andFlush
@@ -106,7 +88,24 @@ class SchedulerRepository extends EntityRepository
      */
     public function save(Task $task, $andFlush = true)
     {
+        if(!$task->isScheduled())
+            throw new DomainException('This is not a scheduled task!');
 
+        try
+        {
+            $this->_em->persist($task);
+
+            if($andFlush)
+                $this->_em->flush();
+        }
+        catch(\Exception $exception)
+        {
+            $message = 'Database error: ' . $exception->getMessage();
+            throw new DatabaseException($message);
+        }
+
+        //return saved task on success
+        return $task;
     }
 
 
@@ -121,7 +120,21 @@ class SchedulerRepository extends EntityRepository
      */
     public function delete(Task $task, $andFlush = true)
     {
+        try
+        {
+            $deleteResult = $this->_em->remove($task);
 
+            if($andFlush)
+                $this->_em->flush();
+        }
+        catch(\Exception $exception)
+        {
+            $message = 'Database error: ' . $exception->getMessage();
+            throw new DatabaseException($message);
+        }
+
+        //return saved task on success
+        return $deleteResult;
     }
 
 
@@ -130,11 +143,11 @@ class SchedulerRepository extends EntityRepository
      * Returns task by its numeric id.
      *
      * @param int $id
-     * @return \ShiftGearman\Task
+     * @return \ShiftGearman\Task | null
      */
     public function findById($id)
     {
-
+        return $this->findOneBy(array('id' => $id));
     }
 
 
