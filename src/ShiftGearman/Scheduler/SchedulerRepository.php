@@ -27,7 +27,10 @@ namespace ShiftGearman\Scheduler;
 
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\EntityManager;
+
 use ShiftGearman\Task;
+use ShiftGearman\Exception\DomainException;
+use ShiftGearman\Exception\DatabaseException;
 
 /**
  * Scheduler repository
@@ -73,35 +76,76 @@ class SchedulerRepository extends EntityRepository
     }
 
 
-
+    /**
+     * Schedule task
+     * Accepts a task and persist it to scheduler queue. May optionally
+     * flush transaction.
+     *
+     * @param \ShiftGearman\Task $task
+     * @param bool $andFlush
+     * @throws \ShiftGearman\Exception\DomainException
+     * @throws \ShiftGearman\Exception\DatabaseException
+     * @return \ShiftGearman\Task
+     */
     public function schedule(Task $task, $andFlush = true)
     {
 
     }
 
 
+    /**
+     * Save
+     * Save changes to task. This is used to update tasks. May optionally
+     * flush transaction.
+     *
+     * @param \ShiftGearman\Task $task
+     * @param bool $andFlush
+     * @throws \ShiftGearman\Exception\DomainException
+     * @throws \ShiftGearman\Exception\DatabaseException
+     * @return \ShiftGearman\Task
+     */
     public function save(Task $task, $andFlush = true)
     {
 
     }
 
 
+    /**
+     * Delete
+     * Removes task from scheduler queue. May optionally flush transaction.
+     *
+     * @param \ShiftGearman\Task $task
+     * @param bool $andFlush
+     * @throws \ShiftGearman\Exception\DatabaseException
+     * @return void
+     */
     public function delete(Task $task, $andFlush = true)
     {
 
     }
 
 
-
-    public function findById()
+    /**
+     * Find by id
+     * Returns task by its numeric id.
+     *
+     * @param int $id
+     * @return \ShiftGearman\Task
+     */
+    public function findById($id)
     {
 
     }
 
 
+    /**
+     * Get due tasks
+     * Returns an array of tasks that are to passed to gearman for execution.
+     * @return array
+     */
     public function getDueTasks()
     {
-        
+
     }
 
 
