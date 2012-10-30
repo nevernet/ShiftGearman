@@ -196,7 +196,7 @@ class GearmanService
      * @param string $name
      * @return \GearmanClient
      */
-    public function getClient($name)
+    public function getClient($name = 'default')
     {
         if(!isset($this->connections[$name]))
         {
@@ -204,7 +204,7 @@ class GearmanService
             if(!isset($config['connections'][$name]))
             {
                 $message = "Can't create client '$name'. Connection ";
-                $message .= "configuration is missing";
+                $message .= "configuration is missing.";
                 throw new ConfigurationException($message);
             }
 
@@ -271,8 +271,6 @@ class GearmanService
 
         return $this;
     }
-
-
 
 
     /**

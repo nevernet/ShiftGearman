@@ -200,5 +200,81 @@ class GearmanServiceTest extends TestCase
     }
 
 
+    /**
+     * Test that we do throw an exception when requesting client connection
+     * with invalid connection data configured.
+     *
+     * @test
+     * @expectedException \ShiftGearman\Exception\ConfigurationException
+     * @expectedExceptionMessage Can't create client 'me-not-configured'.
+     * Connection configuration is missing.
+     */
+    public function throwExceptionWhenRequestingClientWithBadConnectionConfig()
+    {
+        $service = new GearmanService($this->getLocator());
+        $service->setConfig(array());
+        $service->getClient('me-not-configured');
+    }
+
+
+    /**
+     * Test that we are able to get client connection by name.
+     * @test
+     */
+    public function canGetClientConnection()
+    {
+        if(!class_exists('GearmanClient'))
+            $this->markTestIncomplete();
+
+
+        //prepare config
+        $config = array(
+            'connections' => array(
+                'default' => array(
+                    'timeout' => 1000,
+                    'servers' => array(
+                        array('host' => '127.0.0.1', 'port' => 4730)
+                    )
+                )
+            ),
+        );
+
+        $service = new GearmanService($this->getLocator());
+        $client = $service->getClient();
+        $this->assertInstanceOf('GearmanClient', $client);
+    }
+
+
+    /**
+     * Test that we preserve connected clients within service.
+     * @test
+     */
+    public function preserveConnectedClients()
+    {
+        if(!class_exists('GearmanClient'))
+            $this->markTestIncomplete();
+
+
+        //prepare config
+        $config = array(
+            'connections' => array(
+                'default' => array(
+                    'timeout' => 1000,
+                    'servers' => array(
+                        array('host' => '127.0.0.1', 'port' => 4730)
+                    )
+                )
+            ),
+        );
+
+        $service = new GearmanService($this->getLocator());
+        $service->getClient();
+        $clients = $service->getClients();
+
+        $this->assertTrue(is_array($clients));
+        $this->assertFalse(empty($clients));
+    }
+
+
 
 }//class ends here
