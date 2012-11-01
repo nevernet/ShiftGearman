@@ -40,7 +40,6 @@ use ShiftGearman\Task;
  * @subpackage  Tests
  *
  * @group       integration
- * @group z
  */
 class GearmanServiceTest extends TestCase
 {
@@ -96,40 +95,8 @@ class GearmanServiceTest extends TestCase
 
 
     /**
-     * Test that we preserve connected clients within service.
-     * @test
-     */
-    public function preserveConnectedClients()
-    {
-        if(!class_exists('GearmanClient'))
-            $this->markTestIncomplete();
-
-
-        //prepare config
-        $config = array(
-            'connections' => array(
-                'default' => array(
-                    'timeout' => 1000,
-                    'servers' => array(
-                        array('host' => '127.0.0.1', 'port' => 4730)
-                    )
-                )
-            ),
-        );
-
-        $service = new GearmanService($this->getLocator());
-        $service->getClient();
-        $clients = $service->getClients();
-
-        $this->assertTrue(is_array($clients));
-        $this->assertFalse(empty($clients));
-    }
-
-
-    /**
      * Test that we can pass a task for gearman execution.
      * @test
-     * @group zzz
      */
     public function canPassTaskForExecutionToGearman()
     {
@@ -216,7 +183,7 @@ class GearmanServiceTest extends TestCase
 
         $repositoryName = 'ShiftGearman\Scheduler\SchedulerRepository';
         $repository = Mockery::mock($repositoryName);
-        $repository->shouldReceive('schedule')
+        $repository->shouldReceive('save')
             ->with($task, true);
 
         $service = new GearmanService($this->getLocator());
@@ -228,7 +195,6 @@ class GearmanServiceTest extends TestCase
     /**
      * Test that we can run scheduled tasks with a dedicated runner.
      * @test
-     * @group zz
      */
     public function canRunScheduledTasks()
     {
@@ -287,7 +253,6 @@ class GearmanServiceTest extends TestCase
             $recurringId
         ));
     }
-
 
 
 }//class ends here

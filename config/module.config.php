@@ -20,6 +20,12 @@ return array(
                     array('host' => '127.0.0.1', 'port' => 4730)
                 )
             ),
+            'default2' => array(
+                'timeout' => null,
+                'servers' => array(
+                    array('host' => '127.0.0.1', 'port' => 4730)
+                )
+            ),
         ),
 
         /*

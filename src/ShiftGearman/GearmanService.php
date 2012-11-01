@@ -63,12 +63,6 @@ class GearmanService
      */
     protected $schedulerRepository;
 
-    /**
-     * An array of gearman client connections.
-     * @var array
-     */
-    protected $clients = array();
-
 
     /**
      * Construct
@@ -198,34 +192,28 @@ class GearmanService
      */
     public function getClient($name = 'default')
     {
-        if(!isset($this->connections[$name]))
+        $config = $this->getConfig();
+        if(!isset($config['connections'][$name]))
         {
-            $config = $this->getConfig();
-            if(!isset($config['connections'][$name]))
-            {
-                $message = "Can't create client '$name'. Connection ";
-                $message .= "configuration is missing.";
-                throw new ConfigurationException($message);
-            }
-
-            //create connection
-            $connectionConfig = $config['connections'][$name];
-            $client = new GearmanClient;
-
-            //set timeout
-            if($connectionConfig['timeout'])
-                $client->setTimeout($connectionConfig['timeout']);
-
-            //add servers
-            foreach($connectionConfig['servers'] as $server)
-                $client->addServer($server['host'], $server['port']);
-
-            //preserve
-            $this->clients[$name] = $client;
+            $message = "Can't create client '$name'. Connection ";
+            $message .= "configuration is missing.";
+            throw new ConfigurationException($message);
         }
 
+        //create connection
+        $connectionConfig = $config['connections'][$name];
+        $client = new GearmanClient;
+
+        //set timeout
+        if($connectionConfig['timeout'])
+            $client->setTimeout($connectionConfig['timeout']);
+
+        //add servers
+        foreach($connectionConfig['servers'] as $server)
+            $client->addServer($server['host'], $server['port']);
+
         //return
-        return $this->clients[$name];
+        return $client;
     }
 
 
@@ -287,15 +275,16 @@ class GearmanService
      */
     public function runTasksWithGearman(array $tasks)
     {
+        //organize tasks by connection to add at once
+        $byClient = array();
         foreach($tasks as $task)
         {
-            if(null == $task->getJobName())
-                continue;
+            $clientName = $task->getClientName();
+            $byClient[$clientName][] = $task;
+        }
 
-            //get client
-            $client = $this->getClient($task->getClientName());
-
-            //figure out priority
+        //method name calculator
+        $getMethod = function($task){
             $priority = $task->getPriority();
             switch($priority)
             {
@@ -319,16 +308,24 @@ class GearmanService
                         $method = 'addTaskBackground';
                 break;
             }
+            return $method;
+        };
 
-            //add
-            $client->$method(
-                $task->getJobName(),
-                $task->getWorkload(),
-                null, //context
-                $task->getId()
-            );
+        //add tasks to each client
+        foreach($byClient as $clientName => $tasks)
+        {
+            $client = $this->getClient($clientName);
+            foreach($tasks as $task)
+            {
+                $method = $getMethod($task);
+                $client->$method(
+                    $task->getJobName(),
+                    $task->getWorkload(),
+                    null,
+                    $task->getId()
+                );
+            }
             $client->runTasks();
-
         }
     }
 
