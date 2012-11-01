@@ -34,7 +34,7 @@ use GearmanJob;
  * @package     ShiftGearman
  * @subpackage  Job
  */
-class ExampleJob extends AbstractJob
+class ExampleJob2 extends AbstractJob
 {
     /**
      * Init
@@ -44,7 +44,7 @@ class ExampleJob extends AbstractJob
      */
     public function init()
     {
-        $this->setName('shiftgearman.example');
+        $this->setName('shiftgearman.example2');
         $this->setDescription('An example job used for testing');
     }
 

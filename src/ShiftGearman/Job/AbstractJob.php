@@ -48,6 +48,12 @@ abstract class AbstractJob
     protected $name;
 
     /**
+     * Job description
+     * @var string
+     */
+    protected $description = '';
+
+    /**
      * Service locator instance
      * @var \Zend\Di\Locator
      */
@@ -113,6 +119,31 @@ abstract class AbstractJob
     public function getName()
     {
         return $this->name;
+    }
+
+
+    /**
+     * Set description
+     * Sets description for this job.
+     *
+     * @param string $description
+     * @return \ShiftGearman\Job\AbstractJob
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+
+    /**
+     * Get name
+     * Returns currently set job name.
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->description;
     }
 
 

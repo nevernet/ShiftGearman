@@ -1,5 +1,6 @@
 {
     "name": "projectshift/ShiftGearman",
+    "bin": ["bin/worker.php"],
     "description": "This module provides object interface to create and execute Gearman tasks with PECL extension.",
     "keywords": ["module", "cms", "gearman", "queue", "job queue"],
     "homepage": "http://www.projectshift.eu/",
@@ -12,6 +13,7 @@
     ],
     "require": {
         "projectshift/ShiftDoctrine": "dev-master",
+        "symfony/console": "*",
         "ext-gearman":"*"
     }
 }

@@ -20,12 +20,6 @@ return array(
                     array('host' => '127.0.0.1', 'port' => 4730)
                 )
             ),
-            'default2' => array(
-                'timeout' => null,
-                'servers' => array(
-                    array('host' => '127.0.0.1', 'port' => 4730)
-                )
-            ),
         ),
 
         /*
@@ -37,6 +31,16 @@ return array(
 
             //example worker
             'example' => array(
+                'description' => 'This is an example worker used for testing',
+                'connection' => 'default',
+                'jobs' => array(
+                    'ShiftGearman\Job\ExampleJob',
+                )
+            ),
+
+            //example worker
+            'example2' => array(
+                'description' => 'This is an example worker used for testing',
                 'connection' => 'default',
                 'jobs' => array(
                     'ShiftGearman\Job\ExampleJob'
