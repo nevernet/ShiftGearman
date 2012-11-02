@@ -152,6 +152,7 @@ class GearmanService
      *
      * @param string $workerName
      * @throws \ShiftGearman\Exception\ConfigurationException
+     * @return \ShiftGearman\Worker\Worker
      */
     public function getWorker($workerName = null)
     {

@@ -80,6 +80,28 @@ class Info extends Command
         return $this->config;
     }
 
+    /**
+     * Configure
+     * Sets console command properties.
+     *
+     * @return void
+     */
+    protected function configure()
+    {
+        $this->setName('info');
+        $this->setDescription(
+            'Display workers configuration and capabilities.'
+        );
+
+        //worker name
+        $this->addOption(
+            'worker',
+            'w',
+            InputOption::VALUE_REQUIRED,
+            'Worker name from configuration'
+        );
+    }
+
 
     /**
      * Print worker
@@ -144,27 +166,6 @@ class Info extends Command
 
         $output->writeln('');
         $output->writeln('');
-    }
-
-
-    /**
-     * Configure
-     * Sets console command properties.
-     *
-     * @return void
-     */
-    protected function configure()
-    {
-        $this->setName('info');
-        $this->setDescription('Start configured worker process by name.');
-
-        //worker name
-        $this->addOption(
-            'worker',
-            'w',
-            InputOption::VALUE_REQUIRED,
-            'Worker name from configuration'
-        );
     }
 
 

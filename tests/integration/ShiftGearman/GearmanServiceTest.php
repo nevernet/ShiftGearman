@@ -96,6 +96,7 @@ class GearmanServiceTest extends TestCase
 
     /**
      * Test that we can pass a task for gearman execution.
+     * Note: this test requires a worker capable of execution of jobs.
      * @test
      */
     public function canPassTaskForExecutionToGearman()
