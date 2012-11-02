@@ -35,6 +35,7 @@ return array(
                 'connection' => 'default',
                 'jobs' => array(
                     'ShiftGearman\Job\ExampleJob',
+                    'ShiftGearman\Job\DieJob',
                 )
             ),
 
@@ -47,5 +48,18 @@ return array(
                 )
             )
         )
-    )
+    ),
+
+    /*
+     * ShiftKernel module configuration
+     * Execute gearman migrations in postinstall cli process.
+     */
+    'ShiftKernel' => array(
+        'cli' => array(
+            'migrationsSequence' => array(
+                999 => 'ShiftGearman' //execute late
+            )
+        ),
+    ),
+
 );
