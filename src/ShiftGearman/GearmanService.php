@@ -175,6 +175,12 @@ class GearmanService
             throw new ConfigurationException($message);
         }
 
+        //get worker type
+        $map = array(
+            'worker' => 'ShiftGearman\Worker\Worker',
+            'scheduler' => 'ShiftGearman\Worker\Scheduler'
+        );
+
         //create worker
         $worker = $this->locator->newInstance('ShiftGearman\Worker\Worker');
         $worker->setConfig($config['workers'][$workerName]);

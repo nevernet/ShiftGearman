@@ -34,7 +34,7 @@ use GearmanJob;
  * @package     ShiftGearman
  * @subpackage  Job
  */
-class ExampleJob2 extends AbstractJob
+class DieJob extends AbstractJob
 {
     /**
      * Init
@@ -44,8 +44,8 @@ class ExampleJob2 extends AbstractJob
      */
     public function init()
     {
-        $this->setName('shiftgearman.example2');
-        $this->setDescription('An example job used for testing');
+        $this->setName('shiftgearman.diejob');
+        $this->setDescription('A job for testing different kinds of errors');
     }
 
 
@@ -58,24 +58,27 @@ class ExampleJob2 extends AbstractJob
      */
     public function execute(GearmanJob $job)
     {
+        echo 'Executing job';
         $workload = $job->workload();
-        if($workload == 'quick')
+
+        if($workload == 'die')
         {
-            echo 'Executing in quick mode.' . PHP_EOL;
-            return;
+            echo 'Issuing a die statement' . PHP_EOL;
+            die('Die execution requested');
         }
 
-        echo '-------------------------------------------' . PHP_EOL;
-        echo 'Executing job' . PHP_EOL . PHP_EOL;
-
-        $iterations = 10;
-        for($i = 1; $i < $iterations; $i++)
+        if($workload == 'exception')
         {
-            echo 'Iteration ' . $i . ' of ' . $iterations . PHP_EOL;
-            sleep(1);
+            echo 'Throwing an exception' . PHP_EOL;
+            throw new \Exception('Job produced an exception');
         }
 
-        echo PHP_EOL . 'Done' . PHP_EOL . PHP_EOL;
+        if($workload == 'error')
+        {
+            echo 'Triggering an error' . PHP_EOL;
+            trigger_error("Error requested", E_USER_ERROR);
+        }
+
     }
 
 

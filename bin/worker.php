@@ -12,5 +12,6 @@ $runHelper->bootstrap();
 //configure console app
 $application = new Symfony\Component\Console\Application;
 $application->add(new ShiftGearman\Console\Command\Run);
+$application->add(new ShiftGearman\Console\Command\RunScheduled);
 $application->add(new ShiftGearman\Console\Command\Info);
 $application->run();

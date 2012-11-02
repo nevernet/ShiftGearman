@@ -256,4 +256,22 @@ class GearmanServiceTest extends TestCase
     }
 
 
+    /**
+     * Test that we are able to process job exceptions.
+     * @test
+     * @group zzz
+     */
+    public function canProcessErrorsAndExceptions()
+    {
+        $task = new Task;
+        $task->setJobName('shiftgearman.example');
+        $task->setWorkload('normal');
+        $task->priorityHigh();
+        $task->runInBackground();
+
+        $service = $this->getLocator()->get('ShiftGearman\GearmanService');
+        $service->add($task);
+    }
+
+
 }//class ends here

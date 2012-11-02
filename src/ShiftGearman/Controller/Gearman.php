@@ -40,9 +40,6 @@ use Zend\View\Model\ViewModel;
 class Gearman extends ActionController
 {
 
-
-
-
     /**
      * Gearman index action
      * Here we are going to create an run a gearman job.
@@ -61,8 +58,7 @@ class Gearman extends ActionController
             ->setWorkload('Pass this data to task')
             ->priorityHigh()
             ->runInBackground()
-            ->setStart(new \Datetime)
-            ->setRepeat(2, 'P2D');
+            ->setRepeat(2, 'PT1M');
 
         $service = $this->locator->get('ShiftGearman\GearmanService');
         $service->add($task);
