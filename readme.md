@@ -139,6 +139,50 @@ The following section only makes sense if you run scheduler process. Here you sa
 ```
 
 
+## The CLI
+
+We provide you with several convenient cli tools to ease starting workers, the scheduler process, cron or get info on configured workers and capabilities. To run CLI tool do `php \path-to-bin\worker.php` if ran without any options it will show you all available commands that are:
+
+__Info__  `php \path-to-bin\worker.php info`
+
+Will give you info on all configured workers and their capabilities. When run with `-w workerName` or `--worker=workerName` option will show info on the specified worker only. Here is a typical output:
+
+    example
+    -------------------------------------------------------
+    Description: This is an example worker used for testing
+    Connection: default
+    Timeout: no
+    Servers: 127.0.0.1:4730
+
+    Worker capabilities:
+
+    shiftgearman.example
+    An example job used for testing (ShiftGearman\Job\ExampleJob)
+
+    shiftgearman.diejob
+    A job for testing different kinds of errors (ShiftGearman\Job\DieJob)
+
+
+
+
+__Run worker__  `php \path-to-bin\worker.php run -w workerName`
+
+Starts a worker process and waits for task to execute jobs. Typically you will run this command from process supervisor, although running from CLI is also possible.
+
+__Scheduler process__  `php \path-to-bin\worker.php scheduler-process`
+
+Similar to worker starts a process that polls the scheduler queue for due tasks and passes them for execution to gearman. Typically you start this from process supervisor, but starting directly from CLI is also possible.
+
+
+__Run scheduled__  `php \path-to-bin\worker.php run-scheduled`
+
+Does a single request to scheduler queue to fetch due tasks and pass them for execution. Typically this is run by cron tast periodically, but running from CLI is also possible.
+
+
+
+
+
+
 
 
 
