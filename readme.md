@@ -25,6 +25,7 @@ Gearman server does support delayed and scheduled tasts, although PHP extension 
 
 Job is a certain piece of functionality registered by a given name within workers. Workers then listen for commands to execute a job the name it was registered. This commands are called tasks (see sections below). To write your job, extend base ShiftGearman\Job\AbstractJob and define a name by wich this job will be called, a description of what job does and the actual functionality code in Job::execute() method.
 
+
 ## Calling job execution with Tasks
 
 A Task is basically a directive to execute certain Job with provided properties that include:
@@ -42,7 +43,7 @@ Here is an example of creating a task:
 ```PHP
 $task = new \ShiftGearman\Task;
 $task->setJobName('shiftgearman.example')
-    ->setWorkload('Pass this data to task')
+    ->setWorkload('Pass this data to job')
     ->priorityHigh()
     ->runInBackground()
     ->setRepeat(3, 'PT1M');
@@ -50,4 +51,55 @@ $task->setJobName('shiftgearman.example')
 $service = $this->locator->get('ShiftGearman\GearmanService');
 $service->add($task);
 ```
+
+What it does is create a new directive to execute Job registered by name __shiftgearman.example__ with the given workload __Pass this data to task__ with __high priority__ and in __background__. Additionally it is set to repeat __3 times__ with DateInterval of __PT1M (one minute)__
+
+## Running scheduled tasks
+
+As mas mentioned earlier scheduler queue needs a certain process to regularly poll scheduler queue to retrieve tasks that must have been executed by now and passing them to gearman for execution. We provide several easy ways of doing it via CLI tool.
+
+__Cron task__
+
+You can configure a cron job to regularly execute CLI command that will grab due jobs and execute them. The command to run is: `php \path-to-bin\worker.php run-scheduled`
+
+
+__Scheduler process__
+
+Alternatively you can run a dedicated worker process that will do exactly the same and has configuration options of maximum iterations before restart and timeout before iterations. To run the scheduler process do `php \path-to-bin\worker.php scheduler-process`
+
+## Configuration
+
+The module provides multiple configuration options that may be overridden in your application. below we will describe different configuration sections.
+
+__Connections__
+
+Here you configure different connections that your workers and clients will use. You may have single gearman server running on localhost (default configuration) or a number of connections and distributed job servers.
+
+```PHP
+
+/*
+ * Connections
+ * This connections will be used to create client and worker
+ * connections and is basically a pool of gearman servers.
+ */
+'connections' => array(
+
+    //default gearman connection
+    'default' => array(
+        'timeout' => null,
+        'servers' => array(
+            array('host' => '127.0.0.1', 'port' => 4730)
+        )
+    ),
+),
+
+```
+
+
+
+
+## The CLI
+
+
+
  
