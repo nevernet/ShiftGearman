@@ -49,6 +49,7 @@ class DieJob extends AbstractJob
     }
 
 
+    // @codeCoverageIgnoreStart
     /**
      * Execute
      * Runs the job procedure
@@ -80,6 +81,7 @@ class DieJob extends AbstractJob
         }
 
     }
+    // @codeCoverageIgnoreEnd
 
 
 

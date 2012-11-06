@@ -49,9 +49,13 @@ class ExampleJob extends AbstractJob
     }
 
 
+
+    // @codeCoverageIgnoreStart
     /**
      * Execute
-     * Runs the job procedure
+     * Runs the job procedure. This is run by background process and cannot
+     * be effectively tested.
+     *
      *
      * @param \GearmanJob $job
      * @return mixed|void
@@ -59,24 +63,27 @@ class ExampleJob extends AbstractJob
     public function execute(GearmanJob $job)
     {
         $workload = $job->workload();
-        if($workload == 'quick')
+        if($workload != 'quick')
         {
-            echo 'Executing in quick mode.' . PHP_EOL;
+            echo '-------------------------------------------' . PHP_EOL;
+            echo 'Executing job' . PHP_EOL . PHP_EOL;
+
+            $iterations = 10;
+            for($i = 1; $i < $iterations; $i++)
+            {
+                echo 'Iteration ' . $i . ' of ' . $iterations . PHP_EOL;
+                sleep(1);
+            }
+
+            echo PHP_EOL . 'Done' . PHP_EOL . PHP_EOL;
             return;
         }
 
-        echo '-------------------------------------------' . PHP_EOL;
-        echo 'Executing job' . PHP_EOL . PHP_EOL;
 
-        $iterations = 10;
-        for($i = 1; $i < $iterations; $i++)
-        {
-            echo 'Iteration ' . $i . ' of ' . $iterations . PHP_EOL;
-            sleep(1);
-        }
-
-        echo PHP_EOL . 'Done' . PHP_EOL . PHP_EOL;
+        echo 'Executing in quick mode.' . PHP_EOL;
+        return;
     }
+    // @codeCoverageIgnoreEnd
 
 
 

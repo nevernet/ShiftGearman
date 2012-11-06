@@ -225,18 +225,6 @@ class GearmanService
 
 
     /**
-     * Get clients
-     * Returns all currently existing client connections.
-     *
-     * @return array
-     */
-    public function getClients()
-    {
-        return $this->clients;
-    }
-
-
-    /**
      * Add
      * Accepts a task or an array of tasks and dispatches it either
      * for direct execution or schedules for the future.
