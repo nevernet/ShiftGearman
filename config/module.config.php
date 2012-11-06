@@ -57,7 +57,7 @@ return array(
          * maximum iterations before exit.
          */
         'scheduler' => array(
-            'timeoutSeconds' => 1,
+            'timeoutSeconds' => 10,
             'maximumIterations' => 500
         )
 
