@@ -181,6 +181,7 @@ class Worker
      * Checks if we already have a worker and returns that, otherwise
      * will create a new default worker instance.
      *
+     * @throws \ShiftGearman\Exception\ConfigurationException
      * @return \GearmanWorker
      */
     public function getGearmanWorker()
@@ -191,7 +192,7 @@ class Worker
             if(!$this->config || !$this->connectionConfig)
             {
                 $message = "Can't start worker. Either configuration or ";
-                $message = "connection properties missing.";
+                $message .= "connection properties missing.";
                 throw new ConfigurationException($message);
             }
 

@@ -23,21 +23,11 @@ return array(
         ),
 
         /*
-         * Workers
-         * This section configures workers, connections they use and their
-         * capabilities.
-         */
+        * Workers
+        * This section configures workers, connections they use and their
+        * capabilities.
+        */
         'workers' => array(
-
-            //scheduler worker
-            'scheduler' => array(
-                'type' => 'scheduler',
-                'description' => 'Scheduler executes delayed tasks.',
-                'connection' => 'default',
-                'jobs' => array(
-                    'ShiftGearman\Job\SchedulerJob'
-                )
-            ),
 
             //example worker
             'example' => array(
@@ -48,7 +38,6 @@ return array(
                     'ShiftGearman\Job\DieJob',
                 )
             ),
-
         ),
 
         /*
@@ -77,3 +66,4 @@ return array(
     ),
 
 );
+
