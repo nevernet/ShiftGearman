@@ -77,29 +77,68 @@ Here you configure different connections that your workers and clients will use.
 
 ```PHP
 
-/*
- * Connections
- * This connections will be used to create client and worker
- * connections and is basically a pool of gearman servers.
- */
-'connections' => array(
+        /*
+         * Connections
+         * This connections will be used to create client and worker
+         * connections and is basically a pool of gearman servers.
+         */
+        'connections' => array(
 
-    //default gearman connection
-    'default' => array(
-        'timeout' => null,
-        'servers' => array(
-            array('host' => '127.0.0.1', 'port' => 4730)
+            //default gearman connection
+            'default' => array(
+                'timeout' => null,
+                'servers' => array(
+                    array('host' => '127.0.0.1', 'port' => 4730)
+                )
+            ),
+        ),
+
+```
+
+__Workers__
+
+Workers configure each worker job capabilities. You simply define what worker can do and then start it by name from CLI, and it will listen and wait for the configured jobs.
+
+```PHP
+
+        /*
+        * Workers
+        * This section configures workers, connections they use and their
+        * capabilities.
+        */
+        'workers' => array(
+
+            //example worker
+            'example' => array(
+                'description' => 'This is an example worker used for testing',
+                'connection' => 'default',
+                'jobs' => array(
+                    'ShiftGearman\Job\ExampleJob'
+                )
+            ),
+        ),
+
+```
+
+__Scheduler__
+
+The following section only makes sense if you run scheduler process. Here you say how long to wait between polling for new scheduled tasks to execute and maximum number of iterations before worker quits (and be restarted by process controller)
+
+```PHP
+
+        /*
+         * Scheduler
+         * This section configures scheduler process, its sleep timeout and
+         * maximum iterations before exit.
+         */
+        'scheduler' => array(
+            'timeoutSeconds' => 10,
+            'maximumIterations' => 500
         )
-    ),
-),
 
 ```
 
 
 
 
-## The CLI
 
-
-
- 
