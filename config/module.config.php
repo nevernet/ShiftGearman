@@ -29,6 +29,16 @@ return array(
          */
         'workers' => array(
 
+            //scheduler worker
+            'scheduler' => array(
+                'type' => 'scheduler',
+                'description' => 'Scheduler executes delayed tasks.',
+                'connection' => 'default',
+                'jobs' => array(
+                    'ShiftGearman\Job\SchedulerJob'
+                )
+            ),
+
             //example worker
             'example' => array(
                 'description' => 'This is an example worker used for testing',
@@ -39,15 +49,19 @@ return array(
                 )
             ),
 
-            //example worker
-            'example2' => array(
-                'description' => 'This is an example worker used for testing',
-                'connection' => 'default',
-                'jobs' => array(
-                    'ShiftGearman\Job\ExampleJob'
-                )
-            )
+        ),
+
+        /*
+         * Scheduler
+         * This section configures scheduler process, its sleep timeout and
+         * maximum iterations before exit.
+         */
+        'scheduler' => array(
+            'timeoutSeconds' => 1,
+            'maximumIterations' => 500
         )
+
+
     ),
 
     /*

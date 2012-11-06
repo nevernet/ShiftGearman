@@ -450,12 +450,15 @@ class Task
             return $this;
 
         $this->repeatTimes = $this->repeatTimes - 1;
+
         if($this->repeatInterval)
         {
-            $interval = new DateInterval($this->repeatInterval);
-            $this->start = $this->start->add($interval);
+            //set next start time
+            $nextStart = new \DateTime();
+            $nextStart->setTimezone(new \DateTimeZone('UTC'));
+            $nextStart->add(new \DateInterval($this->repeatInterval));
+            $this->setStart($nextStart);
         }
-
 
         return $this;
     }

@@ -53,12 +53,13 @@ class Gearman extends ActionController
         echo '<div class="container">';
         echo '<h3>Submitting a Job to Gearman</h3>';
 
+
         $task = new \ShiftGearman\Task;
         $task->setJobName('shiftgearman.example')
             ->setWorkload('Pass this data to task')
             ->priorityHigh()
             ->runInBackground()
-            ->setRepeat(2, 'PT1M');
+            ->setRepeat(3, 'PT1M');
 
         $service = $this->locator->get('ShiftGearman\GearmanService');
         $service->add($task);

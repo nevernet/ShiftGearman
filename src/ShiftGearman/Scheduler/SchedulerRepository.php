@@ -167,8 +167,10 @@ class SchedulerRepository extends EntityRepository
         $builder->add('where', 'task.start <= :thisVeryMoment');
         $builder->setParameter('thisVeryMoment', $now);
 
+        $query = $builder->getQuery();
+        $result = $query->getResult();
 
-        return $builder->getQuery()->getResult();
+        return $result;
     }
 
 

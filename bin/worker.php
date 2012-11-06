@@ -14,4 +14,5 @@ $application = new Symfony\Component\Console\Application;
 $application->add(new ShiftGearman\Console\Command\Run);
 $application->add(new ShiftGearman\Console\Command\RunScheduled);
 $application->add(new ShiftGearman\Console\Command\Info);
+$application->add(new ShiftGearman\Console\Command\SchedulerProcess());
 $application->run();
