@@ -38,7 +38,6 @@ use ShiftGearman\Worker\Worker;
  * @subpackage  Tests
  *
  * @group       integration
- * @group z
  */
 class WorkerTest extends TestCase
 {
@@ -77,7 +76,42 @@ class WorkerTest extends TestCase
      */
     public function canConfigureAndInstantiateGearmanWorker()
     {
-        $this->markTestIncomplete();
+        if(!class_exists('GearmanWorker'))
+            $this->markTestIncomplete();
+
+        //prepare connection config
+        $connectionConfig = array(
+            'timeout' => 1000,
+            'servers' => array(
+                array('host' => '127.0.0.1', 'port' => 4730)
+            )
+        );
+
+        //prepare config
+        $config = array(
+            'description' => 'This is an example worker used for testing',
+            'connection' => 'default',
+            'jobs' => array(
+                'ShiftGearman\Job\ExampleJob',
+                'ShiftGearman\Job\DieJob',
+            )
+        );
+
+        //create worker
+        $worker = new Worker($this->getLocator());
+        $worker->setConfig($config);
+        $worker->setConnectionConfig($connectionConfig);
+
+        //worker created
+        $gearmanWorker = $worker->getGearmanWorker();
+        $this->assertInstanceOf('GearmanWorker', $gearmanWorker);
+
+        //timeout set
+        $this->assertEquals(
+            $connectionConfig['timeout'],
+            $gearmanWorker->timeout()
+        );
+
     }
 
 

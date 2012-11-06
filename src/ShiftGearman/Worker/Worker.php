@@ -315,10 +315,15 @@ class Worker
     }
 
 
+    // @codeCoverageIgnoreStart
     /**
      * Run
      * Connects to gearman server, registers configured jobs and waits
      * for gearman to trigger.
+     *
+     * Note: as this runs the worker process, it can't be effectively tested
+     * with integration testing.
+     *
      */
     public function run()
     {
@@ -334,6 +339,7 @@ class Worker
             }
         }
     }
+    // @codeCoverageIgnoreEnd
 
 
 

@@ -38,7 +38,6 @@ use ShiftGearman\Worker\Worker;
  * @subpackage  Tests
  *
  * @group       unit
- * @group z
  */
 class WorkerTest extends TestCase
 {
@@ -99,18 +98,33 @@ class WorkerTest extends TestCase
      */
     public function canAddJobByName()
     {
+        $job = 'ShiftGearman\Job\ExampleJob';
+        $worker = new Worker($this->getLocator());
 
+        //no jobs initially
+        $jobs = $worker->getJobs();
+        $this->assertTrue(empty($jobs));
+
+        //now add job by name
+        $worker->addJob($job);
+        $jobs = $worker->getJobs();
+        $this->assertFalse(empty($jobs));
+        $this->assertInstanceOf($job, array_shift($jobs));
     }
 
 
     /**
      * Test that we do throw an exception when adding nonexistent job to
      * worker by name.
+     *
      * @test
+     * @expectedException \ShiftGearman\Exception\ConfigurationException
+     * @expectedExceptionMessage Can't get NoSuchJob from service locator
      */
     public function throwExceptionWhenAddingNonexistentJobByName()
     {
-
+        $worker = new Worker($this->getLocator());
+        $worker->addJob('NoSuchJob');
     }
 
 
@@ -120,6 +134,20 @@ class WorkerTest extends TestCase
      */
     public function canAddJobObjectToWorker()
     {
+        $job = 'ShiftGearman\Job\ExampleJob';
+        $job = $this->getLocator()->newInstance($job);
+
+        $worker = new Worker($this->getLocator());
+
+        //no jobs initially
+        $jobs = $worker->getJobs();
+        $this->assertTrue(empty($jobs));
+
+        //now add job by name
+        $worker->addJob($job);
+        $jobs = $worker->getJobs();
+        $this->assertFalse(empty($jobs));
+        $this->assertEquals($job, array_shift($jobs));
 
     }
 
@@ -127,22 +155,51 @@ class WorkerTest extends TestCase
     /**
      * Test that we do throw proper exception when adding job object that does
      * not extend base abstract job.
+     *
      * @test
+     * @expectedException \ShiftGearman\Exception\RuntimeException
+     * @expectedExceptionmessage Invalid job type
      */
     public function throwExceptionWhenAddingJobObjectOfBadType()
     {
+        $job = 'DateTime';
+        $job = $this->getLocator()->newInstance($job);
 
+        $worker = new Worker($this->getLocator());
+        $worker->addJob($job);
     }
 
 
     /**
      * Test that we can add multiple jobs at once. Either by name or as
      * Job object.
+     *
      * @test
      */
     public function canAddMultipleJobsAtOnce()
     {
+        $job1 = 'ShiftGearman\Job\ExampleJob';
+        $job2 = $this->getLocator()->newInstance('ShiftGearman\Job\DieJob');
+        $jobs = array($job1, $job2);
 
+        $worker = new Worker($this->getLocator());
+        $worker->setJobs($jobs);
+
+        $resultingJobs = $worker->getJobs();
+        $this->assertFalse(empty($resultingJobs));
+        $this->assertEquals(2, count($resultingJobs));
+
+        //added job by name
+        $this->assertInstanceOf(
+            'ShiftGearman\Job\ExampleJob',
+            array_shift($resultingJobs)
+        );
+
+        //added job object
+        $this->assertInstanceOf(
+            'ShiftGearman\Job\DieJob',
+            array_shift($resultingJobs)
+        );
     }
 
 
@@ -152,7 +209,17 @@ class WorkerTest extends TestCase
      */
     public function canRemoveJob()
     {
+        $job = 'ShiftGearman\Job\ExampleJob';
+        $worker = new Worker($this->getLocator());
+        $worker->addJob($job);
 
+        $jobs = $worker->getJobs();
+        $job = array_shift($jobs);
+        $worker->removeJob($job);
+
+        //assert removed
+        $jobs = $worker->getJobs();
+        $this->assertEmpty($jobs);
     }
 
 
