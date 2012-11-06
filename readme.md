@@ -60,12 +60,12 @@ As mas mentioned earlier scheduler queue needs a certain process to regularly po
 
 __Cron task__
 
-You can configure a cron job to regularly execute CLI command that will grab due jobs and execute them. The command to run is: `php \path-to-bin\worker.php run-scheduled`
+You can configure a cron job to regularly execute CLI command that will grab due jobs and execute them. The command to run is: `php worker.php run-scheduled`
 
 
 __Scheduler process__
 
-Alternatively you can run a dedicated worker process that will do exactly the same and has configuration options of maximum iterations before restart and timeout before iterations. To run the scheduler process do `php \path-to-bin\worker.php scheduler-process`
+Alternatively you can run a dedicated worker process that will do exactly the same and has configuration options of maximum iterations before restart and timeout before iterations. To run the scheduler process do `php worker.php scheduler-process`
 
 ## Configuration
 
@@ -141,9 +141,9 @@ The following section only makes sense if you run scheduler process. Here you sa
 
 ## The CLI
 
-We provide you with several convenient cli tools to ease starting workers, the scheduler process, cron or get info on configured workers and capabilities. To run CLI tool do `php \path-to-bin\worker.php` if ran without any options it will show you all available commands that are:
+We provide you with several convenient cli tools to ease starting workers, the scheduler process, cron or get info on configured workers and capabilities. To run CLI tool do `php worker.php` if ran without any options it will show you all available commands that are:
 
-__Info__  `php \path-to-bin\worker.php info`
+__Info__  `php worker.php info`
 
 Will give you info on all configured workers and their capabilities. When run with `-w workerName` or `--worker=workerName` option will show info on the specified worker only. Here is a typical output:
 
@@ -165,16 +165,16 @@ Will give you info on all configured workers and their capabilities. When run wi
 
 
 
-__Run worker__  `php \path-to-bin\worker.php run -w workerName`
+__Run worker__  `php worker.php run -w workerName`
 
 Starts a worker process and waits for task to execute jobs. Typically you will run this command from process supervisor, although running from CLI is also possible.
 
-__Scheduler process__  `php \path-to-bin\worker.php scheduler-process`
+__Scheduler process__  `php worker.php scheduler-process`
 
 Similar to worker starts a process that polls the scheduler queue for due tasks and passes them for execution to gearman. Typically you start this from process supervisor, but starting directly from CLI is also possible.
 
 
-__Run scheduled__  `php \path-to-bin\worker.php run-scheduled`
+__Run scheduled__  `php worker.php run-scheduled`
 
 Does a single request to scheduler queue to fetch due tasks and pass them for execution. Typically this is run by cron tast periodically, but running from CLI is also possible.
 
