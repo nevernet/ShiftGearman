@@ -183,7 +183,7 @@ class Task
      */
     public function setClientName($clientName)
     {
-        $this->clientName = $clientName;
+        $this->clientName = (string) $clientName;
         return $this;
     }
 
@@ -283,7 +283,7 @@ class Task
      */
     public function setJobName($jobName)
     {
-        $this->jobName = $jobName;
+        $this->jobName = (string) $jobName;
         return $this;
     }
 
@@ -308,7 +308,7 @@ class Task
      */
     public function setWorkload($workload)
     {
-        $this->workload = $workload;
+        $this->workload = (string) $workload;
         return $this;
     }
 
