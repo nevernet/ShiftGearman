@@ -217,17 +217,20 @@ class SchedulerRepositoryTest extends TestCase
      * executed.
      *
      * @test
+     * @group zzz
      */
     public function canGetDueTasks()
     {
         $past = new \DateTime;
+        $past->setTimezone(new \DateTimeZone('UTC'));
         $past->sub(new \DateInterval('P2Y')); //two years ago
 
         $future = new \DateTime;
+        $future->setTimezone(new \DateTimeZone('UTC'));
         $future->add(new \DateInterval('P1Y')); //one year in future
 
         $task1 = new Task;
-        $task1->setJobName('in.past');
+        $task1->setJobName('in.past1');
         $task1->setRepeat(2, 'P2D');
         $task1->setStart($past);
 
@@ -237,7 +240,7 @@ class SchedulerRepositoryTest extends TestCase
         $task2->setStart($future);
 
         $task3 = new Task;
-        $task3->setJobName('in.past');
+        $task3->setJobName('in.past2');
         $task3->setRepeat(2, 'P2D');
         $task3->setStart($past);
 
@@ -256,7 +259,10 @@ class SchedulerRepositoryTest extends TestCase
         $this->assertEquals(2, count($dueTasks));
 
         foreach($dueTasks as $dueTask)
-            $this->assertEquals('in.past', $dueTask->getJobName());
+        {
+            $pastTasks = array('in.past1', 'in.past2');
+            $this->assertContains($dueTask->getJobName(), $pastTasks);
+        }
     }
 
 
