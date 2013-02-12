@@ -65,5 +65,24 @@ return array(
         ),
     ),
 
+    /*
+     * ShiftDoctrine module configuration.
+     */
+    'ShiftDoctrine' => array(
+        'orm' => array(
+            'entityManagers' => array(
+                'writer' => array(
+                    'metadataDrivers' => array(
+                        'default' => array(
+                            'mappingDirs' => array(
+                                'shiftgearman' => __DIR__ . '/../src/ShiftGearman',
+                            )
+                        )
+                    )
+                ),
+            )
+        )
+    )
+
 );
 
