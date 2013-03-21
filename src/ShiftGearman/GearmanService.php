@@ -364,7 +364,7 @@ class GearmanService
         {
             $task->markRepeatedOnce();
 
-            if(1 > $task->getRepeatTimes())
+            if(1 > $task->getRepeatTimes() && !$task->isContinuous())
                 $this->getSchedulerRepository()->delete($task, false);
             else
                 $this->getSchedulerRepository()->save($task, false);

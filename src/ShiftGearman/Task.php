@@ -43,11 +43,6 @@ use ShiftGearman\Exception\DomainException;
  */
 class Task
 {
-    /*
-     * Task properties
-     */
-
-
     /**
      * Unique task id
      *
@@ -364,13 +359,16 @@ class Task
      * Set repeat
      * A handy shortcut to quickly set task repetition properties.
      *
-     * @param int $times
+     * @param int|string $times
      * @param string $interval
      * @throws \ShiftGearman\Exception\DomainException
      * @return \ShiftGearman\Task
      */
     public function setRepeat($times, $interval)
     {
+        if($times == 'forever')
+            $times = -1;
+
         //evaluate interval
         try {
             new DateInterval((string) $interval);
@@ -385,6 +383,22 @@ class Task
         $this->repeatTimes = $times;
         $this->repeatInterval = $interval;
         return $this;
+    }
+
+
+    /**
+     * Repeat forever
+     * Similarly to previous method sets task to repeat forever
+     * through a given interval.
+     *
+     *
+     * @param string $interval
+     * @throws \ShiftGearman\Exception\DomainException
+     * @return \ShiftGearman\Task
+     */
+    public function repeatForever($interval)
+    {
+        return $this->setRepeat('forever', $interval);
     }
 
 
@@ -412,6 +426,21 @@ class Task
 
 
     /**
+     * Is continuous?
+     * A boolean method to check whether the task should be repeat forever.
+     * @return bool
+     */
+    public function isContinuous()
+    {
+        $continuous = false;
+        if($this->repeatTimes == -1)
+            $continuous = true;
+
+        return $continuous;
+    }
+
+
+    /**
      * Is scheduled
      * A boolean method that returns a flag indicating whether this task
      * should be scheduled. When adding a task this method will be consulted
@@ -424,12 +453,14 @@ class Task
     {
         $now = new DateTime;
         $now->setTimezone(new DateTimeZone('UTC'));
+        $interval = $this->repeatInterval;
 
         $inFuture = ($this->start > $now);
-        $recurring = ($this->repeatTimes > 1 && isset($this->repeatInterval));
+        $recurring = ($this->repeatTimes > 1 && isset($interval));
+        $continuous = ($this->repeatTimes == -1 && isset($interval));
 
         $scheduled = false;
-        if($inFuture || $recurring)
+        if($inFuture || $recurring || $continuous)
             $scheduled = true;
 
         return $scheduled;
@@ -446,14 +477,16 @@ class Task
      */
     public function markRepeatedOnce()
     {
-        if($this->repeatTimes <= 0)
+        if($this->repeatTimes <= 0 && !$this->isContinuous())
             return $this;
 
-        $this->repeatTimes = $this->repeatTimes - 1;
+        //decrement if not continuous
+        if(!$this->isContinuous())
+            $this->repeatTimes = $this->repeatTimes - 1;
 
+        //set next start time
         if($this->repeatInterval)
         {
-            //set next start time
             $nextStart = new \DateTime();
             $nextStart->setTimezone(new \DateTimeZone('UTC'));
             $nextStart->add(new \DateInterval($this->repeatInterval));

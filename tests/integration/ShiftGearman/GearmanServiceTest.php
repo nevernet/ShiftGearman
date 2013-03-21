@@ -257,9 +257,50 @@ class GearmanServiceTest extends TestCase
 
 
     /**
+     * Test that we can run continuous tasks with scheduler.
+     * @test
+     */
+    public function canRunContinuousTasksWithScheduler()
+    {
+        $now = new \DateTime;
+        $now->setTimezone(new \DateTimeZone('UTC'));
+        $now->add(new \DateInterval('PT1S'));
+
+        //once in future
+        $continuous = new Task;
+        $continuous->setId('continuous');
+        $continuousId = $continuous->getId();
+        $continuous->setJobName('shiftgearman.example');
+        $continuous->setWorkload('123');
+        $continuous->setStart($now);
+        $continuous->repeatForever('PT2S');
+
+        $this->assertTrue($continuous->isScheduled());
+        $this->assertEquals($now, $continuous->getStart());
+
+        $service = new GearmanService($this->getLocator());
+        $service->add(array($continuous));
+
+        //sleep for some time
+        sleep(2);
+
+        //now run scheduled tasks
+        $service->runScheduledTasks();
+        $this->em->clear();
+
+        //assert recurring twice updated
+        $continuousUpdated = $service->getSchedulerRepository()->findById(
+            $continuousId
+        );
+        $this->assertTrue($continuousUpdated->isScheduled());
+        $this->assertTrue($continuousUpdated->isContinuous());
+        $this->assertNotEquals($now, $continuousUpdated->getStart());
+    }
+
+
+    /**
      * Test that we are able to process job exceptions.
      * @test
-     * @group zzz
      */
     public function canProcessErrorsAndExceptions()
     {
