@@ -12,8 +12,11 @@
         }
     ],
     "require": {
-        "projectshift/shift-doctrine": "dev-master",
         "symfony/console": "*",
         "ext-gearman":"*"
+    },
+    "suggest": {
+        "projectshift/shift-doctrine": "dev-master",
+        "projectshift/shift-common": "dev-master"
     }
 }
