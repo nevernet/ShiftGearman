@@ -248,6 +248,39 @@ class TaskTest extends TestCase
 
 
     /**
+     * Test that we can set task to be continuous with repeat setter.
+     * @test
+     */
+    public function canSetRepeatToForever()
+    {
+        $times = 'forever';
+        $interval = 'P2Y4DT6H8M';
+        $task = new Task;
+        $task->setRepeat($times, $interval);
+
+        $this->assertEquals(-1, $task->getRepeatTimes());
+        $this->assertTrue($task->isContinuous());
+        $this->assertEquals($interval, $task->getRepeatInterval());
+    }
+
+
+    /**
+     * Test that we can set task to repeat forever via dedicated method.
+     * @test
+     */
+    public function canSetTaskToRepeatForever()
+    {
+        $interval = 'P2Y4DT6H8M';
+        $task = new Task;
+        $task->repeatForever($interval);
+
+        $this->assertEquals(-1, $task->getRepeatTimes());
+        $this->assertTrue($task->isContinuous());
+        $this->assertEquals($interval, $task->getRepeatInterval());
+    }
+
+
+    /**
      * Test that we throw an exception if impossible to schedule task for
      * repetition.
      *
@@ -306,6 +339,21 @@ class TaskTest extends TestCase
 
 
     /**
+     * Test that continuous tasks are put to scheduler queue.
+     * @test
+     */
+    public function continuousTasksAreScheduled()
+    {
+        $task = new Task;
+        $start = new DateTime;
+        $start->sub(new DateInterval('P2D')); //two days in past
+        $task->setStart($start);
+        $task->repeatForever('P1D');
+        $this->assertTrue($task->isScheduled());
+    }
+
+
+    /**
      * Test that we can mark task as repeated by decrementing repeat times
      * and adding interval to start date.
      * @test
@@ -321,6 +369,9 @@ class TaskTest extends TestCase
         $task->markRepeatedOnce();
         $this->assertEquals(1, $task->getRepeatTimes());
     }
+
+
+
 
 
 
