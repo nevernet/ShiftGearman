@@ -16,7 +16,7 @@
         "ext-gearman":"*"
     },
     "suggest": {
-        "projectshift/shift-doctrine": "0.0.1-beta9",
+        "projectshift/shift-doctrine": "0.0.1-beta10",
         "projectshift/shift-common": "0.0.1-beta3"
     }
 }
